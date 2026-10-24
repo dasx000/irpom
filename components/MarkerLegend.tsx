@@ -1,44 +1,34 @@
-import { KATEGORI_RING_COLORS, KONDISI_MARKER_COLORS, getMarkerIconHtml } from "@/lib/marker-icon";
-import { KONDISI_OPTIONS } from "@/lib/kondisi-alsintan";
+import { getMarkerIconHtml } from "@/lib/marker-icon";
+import { STATUS_IRPOM, STATUS_KOSONG_LABEL } from "@/lib/status-irpom";
 
-const KATEGORI_LABELS: Record<string, string> = {
-  pra_panen: "Prapanen",
-  pasca_panen: "Pascapanen",
-};
+// Menjelaskan arti ikon marker peta: warna = status, ukuran = luas lahan.
+// Ikon dirender dari fungsi yang sama persis dengan marker asli
+// (lib/marker-icon.ts) supaya legenda tidak pernah beda dari yang tampil.
+export default function MarkerLegend({ adaStatusKosong = false }: { adaStatusKosong?: boolean }) {
+  const statusList: (string | null)[] = [...STATUS_IRPOM, ...(adaStatusKosong ? [null] : [])];
 
-// Menjelaskan kombinasi info di tiap ikon marker peta: kategori dibedakan
-// lewat BENTUK siluet + warna ring (traktor/hijau utk prapanen, combine
-// harvester/amber utk pascapanen), kondisi lewat warna isi. Ikonnya dirender
-// dari fungsi yang sama persis dipakai marker asli (lib/marker-icon.ts)
-// supaya legenda tidak pernah beda dari yang tampil di peta. Ditaruh
-// bersama KepadatanLegend di kartu yang sama dengan peta.
-export default function MarkerLegend() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-500">
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-gray-600">Kategori (bentuk &amp; ring):</span>
-        {Object.keys(KATEGORI_RING_COLORS).map((kategori) => (
-          <span key={kategori} className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+        <span className="font-medium text-gray-600">Status (warna):</span>
+        {statusList.map((status) => (
+          <span key={status ?? "kosong"} className="flex items-center gap-1.5">
             <span
               className="inline-flex items-center justify-center"
-              dangerouslySetInnerHTML={{ __html: getMarkerIconHtml(kategori, "baik") }}
+              dangerouslySetInnerHTML={{ __html: getMarkerIconHtml(status, 18) }}
             />
-            {KATEGORI_LABELS[kategori] ?? kategori}
+            {status ?? STATUS_KOSONG_LABEL}
           </span>
         ))}
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="font-medium text-gray-600">Kondisi (isi):</span>
-        {KONDISI_OPTIONS.map((k) => (
-          <span key={k.value} className="flex items-center gap-1.5">
-            <span
-              className="size-3 rounded-full"
-              style={{ backgroundColor: KONDISI_MARKER_COLORS[k.value] ?? "#6b7280" }}
-            />
-            {k.label}
-          </span>
-        ))}
+        <span className="font-medium text-gray-600">Ukuran:</span>
+        <span className="inline-flex items-end gap-1">
+          <span dangerouslySetInnerHTML={{ __html: getMarkerIconHtml("Pemanfaatan", 16) }} />
+          <span dangerouslySetInnerHTML={{ __html: getMarkerIconHtml("Pemanfaatan", 26) }} />
+        </span>
+        <span>Luas lahan kecil → besar</span>
       </div>
     </div>
   );

@@ -1,75 +1,36 @@
 import { createClient } from "@/lib/supabase/server";
+import { getIrpomPublikData, parseIrpomFilter } from "@/lib/irpom-publik";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import LandingHero from "@/components/landing/LandingHero";
-import LandingDataSection, { type YearlyDatum } from "@/components/landing/LandingDataSection";
-import type { KategoriDatum } from "@/components/landing/KategoriChart";
-import type { JenisDatum } from "@/components/landing/JenisChart";
-import type { KecamatanDatum } from "@/components/landing/TopKecamatanChart";
-import type { KecamatanDetailRow } from "@/components/landing/KecamatanExplorer";
+import LandingDataSection from "@/components/landing/LandingDataSection";
 import LandingSebaranSection from "@/components/landing/LandingSebaranSection";
+import LandingJelajahSection from "@/components/landing/LandingJelajahSection";
 import LandingFooter from "@/components/landing/LandingFooter";
-import { getPetaMarkers } from "@/lib/get-peta-markers";
 
-export default async function RootPage() {
+// Halaman publik (tanpa login). Filter Tahun Anggaran & Sumber Dana dibaca
+// dari URL dan berlaku untuk seluruh isi halaman.
+export default async function RootPage(props: PageProps<"/">) {
+  const searchParams = await props.searchParams;
+  const filter = parseIrpomFilter(searchParams);
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [
+    {
+      data: { user },
+    },
+    { statistik, rows, opsi },
+  ] = await Promise.all([supabase.auth.getUser(), getIrpomPublikData(filter)]);
 
-  const { data: stats, error: statsError } = await supabase
-    .rpc("get_landing_stats")
-    .single<{ total_alsintan: number; total_kelompok: number }>();
-
-  if (statsError) {
-    console.error("get_landing_stats gagal (migration 0008/0020 sudah dijalankan?):", statsError.message);
-  }
-
-  const { data: yearly, error: yearlyError } = await supabase.rpc("get_landing_yearly_stats");
-
-  if (yearlyError) {
-    console.error("get_landing_yearly_stats gagal (migration 0009 sudah dijalankan?):", yearlyError.message);
-  }
-
-  const { data: kategori, error: kategoriError } = await supabase.rpc("get_landing_kategori_stats");
-
-  if (kategoriError) {
-    console.error("get_landing_kategori_stats gagal (migration 0015 sudah dijalankan?):", kategoriError.message);
-  }
-
-  const { data: jenis, error: jenisError } = await supabase.rpc("get_landing_jenis_stats");
-
-  if (jenisError) {
-    console.error("get_landing_jenis_stats gagal (migration 0016 sudah dijalankan?):", jenisError.message);
-  }
-
-  const { data: kecamatanStats, error: kecamatanStatsError } = await supabase.rpc("get_landing_kecamatan_stats");
-
-  if (kecamatanStatsError) {
-    console.error("get_landing_kecamatan_stats gagal (migration 0010/0014 sudah dijalankan?):", kecamatanStatsError.message);
-  }
-
-  const { data: kecamatanDetail, error: kecamatanDetailError } = await supabase.rpc("get_landing_kecamatan_detail");
-
-  if (kecamatanDetailError) {
-    console.error("get_landing_kecamatan_detail gagal (migration 0019 sudah dijalankan?):", kecamatanDetailError.message);
-  }
-
-  const markers = await getPetaMarkers();
+  const tahun = typeof searchParams.tahun === "string" ? searchParams.tahun : "";
+  const sumber = typeof searchParams.sumber === "string" ? searchParams.sumber : "";
 
   return (
     <div>
       <LandingNavbar loggedIn={!!user} />
-      <LandingHero totalAlsintan={stats?.total_alsintan ?? 0} totalKelompok={stats?.total_kelompok ?? 0} />
-      <LandingDataSection
-        yearly={(yearly as YearlyDatum[] | null) ?? []}
-        kategori={(kategori as KategoriDatum[] | null) ?? []}
-        jenis={(jenis as JenisDatum[] | null) ?? []}
-      />
-      <LandingSebaranSection
-        markers={markers}
-        kecamatanStats={(kecamatanStats as KecamatanDatum[] | null) ?? []}
-        kecamatanDetail={(kecamatanDetail as KecamatanDetailRow[] | null) ?? []}
-      />
+      <LandingHero statistik={statistik} opsi={opsi} tahun={tahun} sumber={sumber} />
+      <LandingDataSection statistik={statistik} />
+      <LandingSebaranSection units={rows} />
+      <LandingJelajahSection units={rows} />
       <LandingFooter />
     </div>
   );

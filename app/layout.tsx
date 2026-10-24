@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AlsinTrack - Monitoring Alsintan",
-  description: "Database & peta sebaran alsintan bantuan pemerintah Kabupaten Way Kanan",
+  title: "Monitoring IRPOM - Kabupaten Way Kanan",
+  description: "Data & peta sebaran Irigasi Perpompaan (IRPOM) Kabupaten Way Kanan",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

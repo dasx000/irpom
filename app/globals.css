@@ -44,7 +44,8 @@ body {
 
 /* Navbar landing page pakai position: fixed (melayang di atas hero), jadi
    seksi yang dituju anchor link perlu jarak supaya judulnya tidak ketutup. */
-#data-alsintan,
+#data-irpom,
+#jelajah,
 #sebaran {
   scroll-margin-top: 88px;
 }

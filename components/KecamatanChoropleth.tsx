@@ -35,11 +35,15 @@ export function densityColor(t: number) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-// `counts` dipetakan dari nama_kecamatan -> jumlah unit. Diterima langsung
-// (bukan diturunkan dari marker) supaya komponen ini bisa dipakai ulang baik
-// oleh /peta (data lengkap, authenticated) maupun landing page publik (cuma
-// angka agregat per kecamatan, lihat get_landing_kecamatan_stats).
-export default function KecamatanChoropleth({ counts }: { counts: Map<string, number> }) {
+// `values` dipetakan dari nama_kecamatan -> nilai (di peta sebaran: luas
+// lahan terairi dalam Ha). `formatValue` menentukan teks tooltip/popup.
+export default function KecamatanChoropleth({
+  values,
+  formatValue = (n) => String(n),
+}: {
+  values: Map<string, number>;
+  formatValue?: (n: number) => string;
+}) {
   const [geoData, setGeoData] = useState<FeatureCollection | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const layersRef = useRef<Map<string, Path>>(new Map());
@@ -56,8 +60,8 @@ export default function KecamatanChoropleth({ counts }: { counts: Map<string, nu
     };
   }, []);
 
-  const maxCount = Math.max(1, ...Array.from(counts.values()));
-  const totalCount = Array.from(counts.values()).reduce((a, b) => a + b, 0);
+  const maxCount = Math.max(1, ...Array.from(values.values()));
+  const totalCount = Array.from(values.values()).reduce((a, b) => a + b, 0);
 
   // Titik label tiap kecamatan (beda dari tooltip hover yang sudah ada) --
   // dihitung dari centroid geometris bentuknya sendiri, BUKAN titik tengah
@@ -93,26 +97,25 @@ export default function KecamatanChoropleth({ counts }: { counts: Map<string, nu
 
   const style: StyleFunction = (feature) => {
     const nama = feature?.properties?.WADMKC as string | undefined;
-    const jumlah = nama ? (counts.get(nama) ?? 0) : 0;
+    const jumlah = nama ? (values.get(nama) ?? 0) : 0;
     return nama && nama === selected ? selectedStyleFor(jumlah) : baseStyleFor(nama, jumlah);
   };
 
   function onEachFeature(feature: Feature, layer: Layer) {
     const nama = (feature.properties?.WADMKC as string | undefined) ?? "-";
-    const jumlah = counts.get(nama) ?? 0;
+    const jumlah = values.get(nama) ?? 0;
     const persen = totalCount > 0 ? Math.round((jumlah / totalCount) * 1000) / 10 : 0;
 
     layersRef.current.set(nama, layer as Path);
 
-    layer.bindTooltip(`${nama}: ${jumlah} unit`, { sticky: true });
+    layer.bindTooltip(`${nama}: ${formatValue(jumlah)}`, { sticky: true });
     layer.bindPopup(
       `<div style="min-width:150px">
         <p style="font-weight:700;font-size:14px;margin:0 0 4px;color:#111827">${nama}</p>
         <p style="margin:0;line-height:1.1">
-          <span style="font-size:22px;font-weight:800;color:#166534">${jumlah}</span>
-          <span style="font-size:12px;font-weight:500;color:#6b7280"> unit</span>
+          <span style="font-size:20px;font-weight:800;color:#075985">${formatValue(jumlah)}</span>
         </p>
-        <p style="font-size:12px;color:#6b7280;margin:4px 0 0">${persen}% dari total kabupaten</p>
+        <p style="font-size:12px;color:#6b7280;margin:4px 0 0">${persen.toLocaleString("id-ID")}% dari total kabupaten</p>
       </div>`
     );
 
@@ -134,7 +137,7 @@ export default function KecamatanChoropleth({ counts }: { counts: Map<string, nu
   // seluruh layer GeoJSON (biar tooltip/popup yang sedang terbuka tidak reset).
   useEffect(() => {
     layersRef.current.forEach((layer, nama) => {
-      const jumlah = counts.get(nama) ?? 0;
+      const jumlah = values.get(nama) ?? 0;
       layer.setStyle(nama === selected ? selectedStyleFor(jumlah) : baseStyleFor(nama, jumlah));
       if (nama === selected) layer.bringToFront();
     });
@@ -149,7 +152,7 @@ export default function KecamatanChoropleth({ counts }: { counts: Map<string, nu
     <LayerGroup>
       {geoData && (
         <GeoJSON
-          key={JSON.stringify(Array.from(counts.entries()))}
+          key={JSON.stringify(Array.from(values.entries()))}
           data={geoData}
           style={style}
           onEachFeature={onEachFeature}

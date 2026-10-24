@@ -1,112 +1,121 @@
 "use client";
 
-import { LayersControl, MapContainer, Marker, Popup } from "react-leaflet";
+import { useEffect, useMemo } from "react";
+import { LayersControl, MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Calendar, Landmark, MapPin, Tractor, Users, Wheat } from "lucide-react";
-import { getMarkerIconHtml } from "@/lib/marker-icon";
-import { KONDISI_BADGE_STYLES, kondisiLabel } from "@/lib/kondisi-alsintan";
+import { Calendar, Landmark, MapPin, Navigation, Ruler, User, Users } from "lucide-react";
+import { getMarkerIconHtml, markerSize } from "@/lib/marker-icon";
+import { statusLabel, statusStyle } from "@/lib/status-irpom";
+import { formatHa, googleMapsRuteUrl } from "@/lib/format";
+import type { IrpomPublik } from "@/lib/irpom-publik-types";
 import MapBaseLayers from "@/components/MapBaseLayers";
 import KecamatanChoropleth from "@/components/KecamatanChoropleth";
 
-export interface PetaMarkerData {
-  id: string;
-  id_unit: string;
-  kondisi: string;
-  kategori: string;
-  nama_jenis: string;
-  tahun_pengadaan: number;
-  latitude: number;
-  longitude: number;
-  nama_kelompok: string | null;
-  nama_desa: string | null;
-  nama_kecamatan: string | null;
-  nama_sumber_dana: string | null;
+const WAY_KANAN_CENTER: [number, number] = [-4.45, 104.45];
+
+type IrpomBerkoordinat = IrpomPublik & { latitude: number; longitude: number };
+
+// Sesuaikan tampilan peta ke semua titik yang sedang tampil, setiap kali
+// hasil filter berubah. Tanpa titik, peta tetap di posisi terakhir.
+function FitToMarkers({ points }: { points: [number, number][] }) {
+  const map = useMap();
+  const key = points.map((p) => p.join(",")).join(";");
+  useEffect(() => {
+    if (points.length === 0) return;
+    if (points.length === 1) map.setView(points[0], 14);
+    else map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 14 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, key]);
+  return null;
 }
 
-const WAY_KANAN_CENTER: [number, number] = [-4.45, 104.35];
+// `units` = semua unit hasil filter (termasuk yang belum punya koordinat,
+// supaya luas per kecamatan di choropleth tetap utuh); marker hanya untuk
+// unit yang berkoordinat.
+export default function PetaSebaran({ units }: { units: IrpomPublik[] }) {
+  const berkoordinat = units.filter((u): u is IrpomBerkoordinat => u.latitude != null && u.longitude != null);
+  const luasMax = Math.max(0, ...units.map((u) => u.luas_ha ?? 0));
 
-function markerIconFor(kategori: string, kondisi: string) {
-  return L.divIcon({
-    html: getMarkerIconHtml(kategori, kondisi),
-    className: "",
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -10],
-  });
-}
+  const luasPerKecamatan = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const u of units) map.set(u.kecamatan, (map.get(u.kecamatan) ?? 0) + (u.luas_ha ?? 0));
+    return map;
+  }, [units]);
 
-function countByKecamatan(markers: PetaMarkerData[]) {
-  const counts = new Map<string, number>();
-  for (const m of markers) {
-    if (!m.nama_kecamatan) continue;
-    counts.set(m.nama_kecamatan, (counts.get(m.nama_kecamatan) ?? 0) + 1);
-  }
-  return counts;
-}
-
-export default function PetaSebaran({ markers }: { markers: PetaMarkerData[] }) {
   return (
-    <MapContainer center={WAY_KANAN_CENTER} zoom={10} style={{ height: "70vh", width: "100%" }}>
+    <MapContainer center={WAY_KANAN_CENTER} zoom={9} style={{ height: "70vh", width: "100%" }}>
       <MapBaseLayers>
-        <LayersControl.Overlay checked name="Jumlah per Kecamatan">
-          <KecamatanChoropleth counts={countByKecamatan(markers)} />
+        <LayersControl.Overlay checked name="Luas Terairi per Kecamatan">
+          <KecamatanChoropleth values={luasPerKecamatan} formatValue={(n) => `${formatHa(n)} Ha`} />
         </LayersControl.Overlay>
       </MapBaseLayers>
-      {markers.map((m) => {
-        const isPascaPanen = m.kategori === "pasca_panen";
-        const KategoriIcon = isPascaPanen ? Wheat : Tractor;
+      <FitToMarkers points={berkoordinat.map((u) => [u.latitude, u.longitude])} />
+      {berkoordinat.map((u) => {
+        const size = markerSize(u.luas_ha, luasMax);
+        const icon = L.divIcon({
+          html: getMarkerIconHtml(u.status, size),
+          className: "",
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+          popupAnchor: [0, -size / 2],
+        });
         return (
-          <Marker key={m.id} position={[m.latitude, m.longitude]} icon={markerIconFor(m.kategori, m.kondisi)}>
-            <Popup minWidth={220} maxWidth={260}>
-              <div className="-m-1 min-w-[190px]">
+          <Marker key={u.id} position={[u.latitude, u.longitude]} icon={icon}>
+            <Popup minWidth={230} maxWidth={270}>
+              <div className="-m-1 min-w-[200px]">
                 <div className="flex items-center gap-2.5 border-b border-gray-100 pb-2.5">
-                  <span
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-                      isPascaPanen ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"
-                    }`}
-                  >
-                    <KategoriIcon size={16} />
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                    <Users size={16} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-gray-900">{m.nama_jenis}</p>
+                    <p className="text-[11px] text-gray-400">Kelompok Tani</p>
+                    <p className="truncate text-sm font-semibold text-gray-900">{u.kelompok_tani ?? "-"}</p>
                   </div>
                 </div>
 
                 <span
-                  className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                    KONDISI_BADGE_STYLES[m.kondisi] ?? "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${statusStyle(u.status).badge}`}
                 >
                   <span className="size-1.5 rounded-full bg-current" />
-                  {kondisiLabel(m.kondisi)}
+                  {statusLabel(u.status)}
                 </span>
 
                 <div className="mt-2.5 space-y-1.5 text-xs text-gray-600">
-                  {m.nama_kelompok && (
-                    <div className="flex items-start gap-2">
-                      <Users size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                      <span>{m.nama_kelompok}</span>
-                    </div>
-                  )}
-                  {m.nama_desa && (
-                    <div className="flex items-start gap-2">
-                      <MapPin size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                      <span>
-                        {m.nama_desa}, {m.nama_kecamatan}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-start gap-2">
+                    <User size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                    <span>Ketua: {u.ketua_poktan ?? "-"}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                    <span>
+                      Desa {u.desa}, Kec. {u.kecamatan}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Ruler size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                    <span>Luas terairi {u.luas_ha != null ? `${formatHa(u.luas_ha)} Ha` : "-"}</span>
+                  </div>
                   <div className="flex items-start gap-2">
                     <Calendar size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                    <span>Tahun pengadaan {m.tahun_pengadaan}</span>
+                    <span>Tahun anggaran {u.tahun_anggaran ?? "-"}</span>
                   </div>
-                  {m.nama_sumber_dana && (
+                  {u.sumber_dana && (
                     <div className="flex items-start gap-2">
                       <Landmark size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                      <span>Sumber dana {m.nama_sumber_dana}</span>
+                      <span>Sumber dana {u.sumber_dana}</span>
                     </div>
                   )}
                 </div>
+
+                <a
+                  href={googleMapsRuteUrl(u.latitude, u.longitude)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 flex items-center justify-center gap-1.5 rounded-md bg-sky-700 px-3 py-1.5 text-xs font-medium !text-white hover:bg-sky-800"
+                >
+                  <Navigation size={13} />
+                  Rute Google Maps
+                </a>
               </div>
             </Popup>
           </Marker>

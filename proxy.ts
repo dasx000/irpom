@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Pemeriksaan optimistis saja (ada sesi atau tidak) + refresh cookie sesi.
+// Otorisasi sebenarnya (role & akun aktif) dicek di server lewat
+// getCurrentProfile() dan RLS database.
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -8,7 +11,6 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      db: { schema: "alsintan" },
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -28,11 +30,11 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLoginPage = request.nextUrl.pathname.startsWith("/login");
-  const isPublicPage =
-    request.nextUrl.pathname === "/" || request.nextUrl.pathname.startsWith("/peta") || isLoginPage;
+  const { pathname } = request.nextUrl;
+  const isLoginPage = pathname.startsWith("/login");
+  const isAdminPage = pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/api/admin/");
 
-  if (!user && !isPublicPage) {
+  if (!user && isAdminPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -40,7 +42,7 @@ export async function proxy(request: NextRequest) {
 
   if (user && isLoginPage) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/admin";
     return NextResponse.redirect(url);
   }
 

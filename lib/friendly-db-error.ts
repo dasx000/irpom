@@ -11,11 +11,7 @@ interface DbErrorLike {
 // `create table` / `add constraint ... unique` di supabase/migrations/).
 const UNIQUE_CONSTRAINT_LABELS: Record<string, string> = {
   master_kecamatan_nama_kecamatan_key: "Nama kecamatan",
-  master_jenis_alsintan_nama_jenis_key: "Nama jenis alsintan",
-  master_jenis_alsintan_kode_singkat_key: "Kode singkat jenis alsintan",
-  master_sumber_dana_nama_sumber_key: "Nama sumber dana",
-  alsintan_id_unit_key: "ID unit alsintan",
-  profiles_nip_key: "NIP",
+  master_desa_id_kecamatan_nama_desa_key: "Nama desa di kecamatan ini",
 };
 
 export function friendlyDbError(error: DbErrorLike, fallback = "Terjadi kesalahan, coba lagi."): string {

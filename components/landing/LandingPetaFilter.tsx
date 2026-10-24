@@ -1,139 +1,85 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import PetaSebaranLoader from "@/components/PetaSebaranLoader";
 import MarkerLegend from "@/components/MarkerLegend";
 import KepadatanLegend from "@/components/KepadatanLegend";
-import { KONDISI_OPTIONS } from "@/lib/kondisi-alsintan";
-import type { PetaMarkerData } from "@/components/PetaSebaran";
+import { formatAngka, formatHa } from "@/lib/format";
+import { STATUS_IRPOM, STATUS_KOSONG_LABEL } from "@/lib/status-irpom";
+import type { IrpomPublik } from "@/lib/irpom-publik-types";
+
+const STATUS_KOSONG_VALUE = "__kosong__";
 
 const selectClass =
-  "rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500";
+  "min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 sm:flex-none";
 
-function uniqueSorted(values: (string | null)[]): string[] {
-  return Array.from(new Set(values.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b, "id"));
-}
-
-// Filter untuk peta di landing page -- ATM dari filter SIMANTAN Kaltim, tapi
-// murni client-side (filter array marker yang sudah di-fetch, tidak lewat
-// query-param + navigasi seperti PetaFilter.tsx di /peta) supaya klik filter
-// tidak memicu reload halaman / lompat scroll dari seksi Sebaran. Default
-// tersembunyi di balik tombol "Filter", sama seperti pola SIMANTAN.
-export default function LandingPetaFilter({ markers }: { markers: PetaMarkerData[] }) {
-  const [open, setOpen] = useState(false);
-  const [jenis, setJenis] = useState("");
-  const [kondisi, setKondisi] = useState("");
+// Filter peta (Kecamatan & Status) murni di browser -- memfilter data yang
+// sudah diambil, tanpa reload halaman. Filter Tahun Anggaran & Sumber Dana
+// ada di hero dan sudah diterapkan di server sebelum data sampai ke sini.
+export default function LandingPetaFilter({ units }: { units: IrpomPublik[] }) {
   const [kecamatan, setKecamatan] = useState("");
-  const [tahun, setTahun] = useState("");
-  const [sumberDana, setSumberDana] = useState("");
+  const [status, setStatus] = useState("");
 
-  const jenisOptions = useMemo(() => uniqueSorted(markers.map((m) => m.nama_jenis)), [markers]);
-  const kecamatanOptions = useMemo(() => uniqueSorted(markers.map((m) => m.nama_kecamatan)), [markers]);
-  const sumberDanaOptions = useMemo(() => uniqueSorted(markers.map((m) => m.nama_sumber_dana)), [markers]);
-  const tahunOptions = useMemo(
-    () => Array.from(new Set(markers.map((m) => m.tahun_pengadaan))).sort((a, b) => b - a),
-    [markers]
+  const kecamatanOptions = useMemo(
+    () => Array.from(new Set(units.map((u) => u.kecamatan))).sort((a, b) => a.localeCompare(b, "id")),
+    [units]
   );
+  const adaStatusKosong = units.some((u) => !u.status);
 
-  const filtered = markers.filter((m) => {
-    if (jenis && m.nama_jenis !== jenis) return false;
-    if (kondisi && m.kondisi !== kondisi) return false;
-    if (kecamatan && m.nama_kecamatan !== kecamatan) return false;
-    if (tahun && String(m.tahun_pengadaan) !== tahun) return false;
-    if (sumberDana && m.nama_sumber_dana !== sumberDana) return false;
+  const filtered = units.filter((u) => {
+    if (kecamatan && u.kecamatan !== kecamatan) return false;
+    if (status === STATUS_KOSONG_VALUE) return !u.status;
+    if (status && u.status !== status) return false;
     return true;
   });
-
-  const activeCount = [jenis, kondisi, kecamatan, tahun, sumberDana].filter(Boolean).length;
+  const tanpaKoordinat = filtered.filter((u) => u.latitude == null || u.longitude == null).length;
+  const luas = filtered.reduce((sum, u) => sum + (u.luas_ha ?? 0), 0);
 
   return (
     <div className="mt-10">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-      >
-        <SlidersHorizontal size={15} className="text-green-600" />
-        Filter
-        {activeCount > 0 && (
-          <span className="flex size-5 items-center justify-center rounded-full bg-green-600 text-[11px] font-semibold text-white">
-            {activeCount}
-          </span>
+      <div className="flex flex-wrap items-center gap-2">
+        <select aria-label="Kecamatan" value={kecamatan} onChange={(e) => setKecamatan(e.target.value)} className={selectClass}>
+          <option value="">Semua Kecamatan</option>
+          {kecamatanOptions.map((k) => (
+            <option key={k} value={k}>
+              {k}
+            </option>
+          ))}
+        </select>
+
+        <select aria-label="Status" value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
+          <option value="">Semua Status</option>
+          {STATUS_IRPOM.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+          {adaStatusKosong && <option value={STATUS_KOSONG_VALUE}>{STATUS_KOSONG_LABEL}</option>}
+        </select>
+
+        {(kecamatan || status) && (
+          <button
+            type="button"
+            onClick={() => {
+              setKecamatan("");
+              setStatus("");
+            }}
+            className="px-2 text-sm font-medium text-gray-500 hover:text-red-600"
+          >
+            Reset
+          </button>
         )}
-        {open ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-      </button>
+      </div>
 
-      {open && (
-        <div className="mt-3 flex flex-wrap gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <select value={jenis} onChange={(e) => setJenis(e.target.value)} className={selectClass}>
-            <option value="">Semua Jenis</option>
-            {jenisOptions.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-
-          <select value={kondisi} onChange={(e) => setKondisi(e.target.value)} className={selectClass}>
-            <option value="">Semua Kondisi</option>
-            {KONDISI_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-
-          <select value={kecamatan} onChange={(e) => setKecamatan(e.target.value)} className={selectClass}>
-            <option value="">Semua Kecamatan</option>
-            {kecamatanOptions.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-
-          <select value={tahun} onChange={(e) => setTahun(e.target.value)} className={selectClass}>
-            <option value="">Semua Tahun</option>
-            {tahunOptions.map((v) => (
-              <option key={v} value={String(v)}>
-                {v}
-              </option>
-            ))}
-          </select>
-
-          <select value={sumberDana} onChange={(e) => setSumberDana(e.target.value)} className={selectClass}>
-            <option value="">Semua Sumber Dana</option>
-            {sumberDanaOptions.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-
-          {activeCount > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                setJenis("");
-                setKondisi("");
-                setKecamatan("");
-                setTahun("");
-                setSumberDana("");
-              }}
-              className="text-sm font-medium text-gray-500 hover:text-red-600"
-            >
-              Reset
-            </button>
-          )}
-        </div>
-      )}
-
-      <p className="mt-3 text-sm text-gray-500">{filtered.length} unit ditampilkan</p>
+      <p className="mt-3 text-sm text-gray-500">
+        <span className="font-semibold text-gray-800">{formatAngka(filtered.length)}</span> unit ·{" "}
+        <span className="font-semibold text-gray-800">{formatHa(luas)} Ha</span> lahan terairi
+        {tanpaKoordinat > 0 && <span> · {formatAngka(tanpaKoordinat)} unit belum memiliki koordinat (tidak tampil di peta)</span>}
+      </p>
 
       <div className="mt-2 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-        <PetaSebaranLoader markers={filtered} />
-        <MarkerLegend />
+        <PetaSebaranLoader units={filtered} />
+        <MarkerLegend adaStatusKosong={adaStatusKosong} />
         <KepadatanLegend />
       </div>
     </div>

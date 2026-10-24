@@ -1,16 +1,39 @@
 import Image from "next/image";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Droplets, Map as MapIcon, Ruler, Users, type LucideIcon } from "lucide-react";
+import IrpomFilterBar from "@/components/landing/IrpomFilterBar";
+import { formatAngka, formatHa } from "@/lib/format";
+import { STATUS_IRPOM, statusStyle } from "@/lib/status-irpom";
+import type { IrpomFilterOpsi, IrpomStatistik } from "@/lib/irpom-publik-types";
 
-// Foto sawah asli Way Kanan (bukan foto stok) sebagai background hero --
-// modifikasi dari pola SIMANTAN yang pakai foto sawah generik, ini dokumentasi
-// sendiri supaya lebih otentik ke konteks kabupaten ini.
+function KpiCard({ icon: Icon, value, satuan, label }: { icon: LucideIcon; value: string; satuan?: string; label: string }) {
+  return (
+    <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-4 text-left backdrop-blur-md sm:px-5">
+      <Icon size={18} className="text-sky-200" />
+      <p className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+        {value}
+        {satuan && <span className="ml-1 text-sm font-semibold text-sky-100">{satuan}</span>}
+      </p>
+      <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-sky-100">{label}</p>
+    </div>
+  );
+}
+
+// Foto sawah asli Way Kanan sebagai background hero.
 export default function LandingHero({
-  totalAlsintan,
-  totalKelompok,
+  statistik,
+  opsi,
+  tahun,
+  sumber,
 }: {
-  totalAlsintan: number;
-  totalKelompok: number;
+  statistik: IrpomStatistik;
+  opsi: IrpomFilterOpsi;
+  tahun: string;
+  sumber: string;
 }) {
+  const { ringkasan } = statistik;
+  const unitPerStatus = new Map(statistik.per_status.map((s) => [s.status, s.unit]));
+  const unitStatusKosong = unitPerStatus.get("Belum diisi") ?? 0;
+
   return (
     <section id="beranda" className="relative isolate overflow-hidden">
       <div className="absolute inset-0 -z-20">
@@ -19,45 +42,70 @@ export default function LandingHero({
           alt="Sawah di Kabupaten Way Kanan"
           fill
           priority
-          className="object-cover blur-[2px] scale-105"
+          className="scale-105 object-cover blur-[2px]"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-green-950/85 via-green-900/70 to-green-950/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-sky-950/85 via-sky-900/70 to-sky-950/90" />
       </div>
 
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-24 text-center text-white">
-        <p className="animate-fade-in-up mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-green-200">
-          CWS Kabupaten Way Kanan
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-4 py-28 text-center text-white sm:px-6">
+        <p className="animate-fade-in-up mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">
+          Pemerintah Kabupaten Way Kanan
         </p>
 
         <h1
-          className="animate-fade-in-up text-4xl font-bold leading-tight tracking-tight drop-shadow-sm sm:text-6xl"
+          className="animate-fade-in-up text-3xl font-bold leading-tight tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl"
           style={{ animationDelay: "100ms" }}
         >
-          Monitoring <span className="text-yellow-400">Alsintan</span>
-          <br className="hidden sm:block" /> <span className="text-yellow-400">Bantuan</span> Pemerintah
+          Monitoring <span className="text-sky-300">Irigasi Perpompaan</span>
+          <br className="hidden sm:block" /> (IRPOM) Kabupaten Way Kanan
         </h1>
 
         <p
-          className="animate-fade-in-up mx-auto mt-6 max-w-2xl text-base text-green-100 sm:text-lg"
+          className="animate-fade-in-up mx-auto mt-5 max-w-2xl text-base text-sky-100 sm:text-lg"
           style={{ animationDelay: "220ms" }}
         >
-          Statistik distribusi, tren tahunan, dan peta sebaran alat mesin pertanian bantuan pemerintah se-Kabupaten
-          Way Kanan.
+          Pemanfaatan air irigasi pompa untuk meningkatkan luas tanam dan produktivitas sawah petani Way Kanan.
         </p>
 
+        <div className="animate-fade-in-up mt-8 w-full sm:w-auto" style={{ animationDelay: "300ms" }}>
+          <IrpomFilterBar opsi={opsi} tahun={tahun} sumber={sumber} />
+        </div>
+
         <div
-          className="animate-fade-in-up mt-10 flex flex-col gap-4 rounded-2xl border border-white/15 bg-white/10 px-8 py-6 backdrop-blur-md sm:flex-row sm:gap-0 sm:px-12"
-          style={{ animationDelay: "340ms" }}
+          className="animate-fade-in-up mt-5 grid w-full max-w-4xl grid-cols-2 gap-3 lg:grid-cols-4"
+          style={{ animationDelay: "380ms" }}
         >
-          <div className="sm:pr-12">
-            <p className="text-4xl font-bold tracking-tight sm:text-5xl">{totalAlsintan.toLocaleString("id-ID")}+</p>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-green-100">Alsintan Disalurkan</p>
-          </div>
-          <div className="hidden w-px self-stretch bg-white/15 sm:block" />
-          <div className="sm:pl-12">
-            <p className="text-4xl font-bold tracking-tight sm:text-5xl">{totalKelompok.toLocaleString("id-ID")}+</p>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-green-100">Kelompok Tani</p>
-          </div>
+          <KpiCard icon={Ruler} value={formatHa(ringkasan.total_luas_ha)} satuan="Ha" label="Luas Lahan Terairi" />
+          <KpiCard icon={Droplets} value={formatAngka(ringkasan.total_unit)} satuan="unit" label="Unit Pompa" />
+          <KpiCard icon={Users} value={formatAngka(ringkasan.jumlah_poktan)} label="Kelompok Tani" />
+          <KpiCard
+            icon={MapIcon}
+            value={`${formatAngka(ringkasan.jumlah_kecamatan)} / ${formatAngka(ringkasan.jumlah_desa)}`}
+            label="Kecamatan / Desa"
+          />
+        </div>
+
+        <div
+          className="animate-fade-in-up mt-4 flex flex-wrap justify-center gap-2 text-xs sm:text-sm"
+          style={{ animationDelay: "460ms" }}
+        >
+          {STATUS_IRPOM.map((status) => (
+            <span
+              key={status}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 backdrop-blur-md"
+            >
+              <span className="size-2 rounded-full" style={{ backgroundColor: statusStyle(status).color }} />
+              {status}
+              <span className="font-bold">{formatAngka(unitPerStatus.get(status) ?? 0)}</span>
+            </span>
+          ))}
+          {unitStatusKosong > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 backdrop-blur-md">
+              <span className="size-2 rounded-full" style={{ backgroundColor: statusStyle(null).color }} />
+              Belum diisi
+              <span className="font-bold">{formatAngka(unitStatusKosong)}</span>
+            </span>
+          )}
         </div>
       </div>
 
