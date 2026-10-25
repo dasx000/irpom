@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, Compass, MapPin, MapPinOff, Search } from "lucide-react";
 import { formatAngka, formatHa, googleMapsTitikUrl } from "@/lib/format";
-import { statusLabel, statusStyle } from "@/lib/status-irpom";
+import { KETERANGAN_LUAS_TERAIRI, luasTerairi, statusLabel, statusStyle } from "@/lib/status-irpom";
 import type { IrpomPublik } from "@/lib/irpom-publik-types";
 
 interface DesaGroup {
@@ -27,7 +27,8 @@ function groupByWilayah(units: IrpomPublik[]): KecamatanGroup[] {
     kecMap.set(u.kecamatan, desaMap);
   }
 
-  const sum = (list: IrpomPublik[]) => list.reduce((s, u) => s + (u.luas_ha ?? 0), 0);
+  // Total kecamatan/desa = luas terairi (status Pemanfaatan saja).
+  const sum = (list: IrpomPublik[]) => list.reduce((s, u) => s + luasTerairi(u), 0);
 
   return Array.from(kecMap, ([kecamatan, desaMap]) => {
     const desaList = Array.from(desaMap, ([desa, list]) => ({
@@ -70,6 +71,7 @@ export default function JelajahWilayah({ units }: { units: IrpomPublik[] }) {
         <div>
           <p className="font-semibold text-gray-900">Jelajah Kecamatan, Desa & Kelompok Tani</p>
           <p className="text-sm text-gray-500">Pilih kecamatan untuk melihat rincian desa dan kelompok tani</p>
+          <p className="mt-0.5 text-xs text-gray-400">{KETERANGAN_LUAS_TERAIRI}</p>
         </div>
       </div>
 

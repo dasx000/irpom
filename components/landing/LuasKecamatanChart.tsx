@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, 
 import { Table2, BarChart3 } from "lucide-react";
 import { formatAngka, formatHa } from "@/lib/format";
 import type { IrpomStatistik } from "@/lib/irpom-publik-types";
+import { KETERANGAN_LUAS_TERAIRI } from "@/lib/status-irpom";
 
 type Datum = IrpomStatistik["per_kecamatan"][number];
 
@@ -66,6 +67,7 @@ export default function LuasKecamatanChart({ data }: { data: IrpomStatistik["per
         <div>
           <p className="font-semibold text-gray-900">Luas Lahan Terairi per Kecamatan</p>
           <p className="text-sm text-gray-500">Diurutkan dari yang terluas, dalam hektar (Ha)</p>
+          <p className="mt-0.5 text-xs text-gray-400">{KETERANGAN_LUAS_TERAIRI}</p>
         </div>
         <div className="flex rounded-lg border border-gray-200 p-0.5 text-xs">
           <button

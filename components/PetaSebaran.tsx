@@ -5,7 +5,7 @@ import { LayersControl, MapContainer, Marker, Popup, useMap } from "react-leafle
 import L from "leaflet";
 import { Calendar, ExternalLink, Landmark, MapPin, MapPinned, User, Users } from "lucide-react";
 import { getMarkerIconHtml, markerSize } from "@/lib/marker-icon";
-import { statusLabel, statusStyle } from "@/lib/status-irpom";
+import { statusLabel, statusStyle, luasTerairi } from "@/lib/status-irpom";
 import { formatHa, googleMapsTitikUrl } from "@/lib/format";
 import type { IrpomPublik } from "@/lib/irpom-publik-types";
 import MapBaseLayers from "@/components/MapBaseLayers";
@@ -38,7 +38,7 @@ export default function PetaSebaran({ units }: { units: IrpomPublik[] }) {
 
   const luasPerKecamatan = useMemo(() => {
     const map = new Map<string, number>();
-    for (const u of units) map.set(u.kecamatan, (map.get(u.kecamatan) ?? 0) + (u.luas_ha ?? 0));
+    for (const u of units) map.set(u.kecamatan, (map.get(u.kecamatan) ?? 0) + luasTerairi(u));
     return map;
   }, [units]);
 

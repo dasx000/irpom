@@ -4,11 +4,11 @@ import { requirePengelolaPage } from "@/lib/auth-guard";
 import { getMonitoringKoordinat, getSemuaIrpom } from "@/lib/admin-data";
 import { BATAS_DUPLIKASI_M } from "@/lib/geo";
 import { formatAngka, formatHa } from "@/lib/format";
-import { STATUS_IRPOM, statusStyle } from "@/lib/status-irpom";
+import { STATUS_IRPOM, luasTerairi, statusStyle } from "@/lib/status-irpom";
 import { KOLOM_KELENGKAPAN } from "@/lib/kelengkapan";
 import PageHeader from "@/components/admin/PageHeader";
 
-function Kartu({ icon: Icon, label, value, satuan }: { icon: typeof Ruler; label: string; value: string; satuan?: string }) {
+function Kartu({ icon: Icon, label, value, satuan, catatan }: { icon: typeof Ruler; label: string; value: string; satuan?: string; catatan?: string }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <Icon size={18} className="text-sky-600" />
@@ -17,6 +17,7 @@ function Kartu({ icon: Icon, label, value, satuan }: { icon: typeof Ruler; label
         {satuan && <span className="ml-1 text-sm font-medium text-gray-500">{satuan}</span>}
       </p>
       <p className="text-xs text-gray-500">{label}</p>
+      {catatan && <p className="mt-0.5 text-[11px] text-gray-400">{catatan}</p>}
     </div>
   );
 }
@@ -26,7 +27,7 @@ export default async function AdminDashboardPage() {
   const [semua, { duplikasi, diLuar }] = await Promise.all([getSemuaIrpom(), getMonitoringKoordinat()]);
 
   const totalUnit = semua.reduce((s, u) => s + u.volume, 0);
-  const totalLuas = semua.reduce((s, u) => s + (u.luas_ha ?? 0), 0);
+  const totalLuas = semua.reduce((s, u) => s + luasTerairi(u), 0);
   const poktan = new Set(semua.filter((u) => u.kelompok_tani).map((u) => `${u.kelompok_tani!.trim().toLowerCase()}|${u.id_desa}`)).size;
   const unitPerStatus = new Map<string | null, number>();
   for (const u of semua) unitPerStatus.set(u.status, (unitPerStatus.get(u.status) ?? 0) + u.volume);
@@ -80,7 +81,7 @@ export default async function AdminDashboardPage() {
       )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kartu icon={Ruler} label="Luas lahan terairi" value={formatHa(totalLuas)} satuan="Ha" />
+        <Kartu icon={Ruler} label="Luas lahan terairi" value={formatHa(totalLuas)} satuan="Ha" catatan="Hanya unit berstatus Pemanfaatan" />
         <Kartu icon={Droplets} label="Unit pompa" value={formatAngka(totalUnit)} satuan="unit" />
         <Kartu icon={Users} label="Kelompok tani" value={formatAngka(poktan)} />
         <Kartu icon={MapPinned} label="Kecamatan / Desa" value={`${formatAngka(jumlahKecamatan)} / ${formatAngka(jumlahDesa)}`} />

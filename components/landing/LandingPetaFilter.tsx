@@ -5,7 +5,7 @@ import PetaSebaranLoader from "@/components/PetaSebaranLoader";
 import MarkerLegend from "@/components/MarkerLegend";
 import KepadatanLegend from "@/components/KepadatanLegend";
 import { formatAngka, formatHa } from "@/lib/format";
-import { STATUS_IRPOM, STATUS_KOSONG_LABEL } from "@/lib/status-irpom";
+import { STATUS_IRPOM, STATUS_KOSONG_LABEL, luasTerairi } from "@/lib/status-irpom";
 import type { IrpomPublik } from "@/lib/irpom-publik-types";
 
 const STATUS_KOSONG_VALUE = "__kosong__";
@@ -33,7 +33,7 @@ export default function LandingPetaFilter({ units }: { units: IrpomPublik[] }) {
     return true;
   });
   const tanpaKoordinat = filtered.filter((u) => u.latitude == null || u.longitude == null).length;
-  const luas = filtered.reduce((sum, u) => sum + (u.luas_ha ?? 0), 0);
+  const luas = filtered.reduce((sum, u) => sum + luasTerairi(u), 0);
 
   return (
     <div className="mt-10">
@@ -73,7 +73,7 @@ export default function LandingPetaFilter({ units }: { units: IrpomPublik[] }) {
 
       <p className="mt-3 text-sm text-gray-500">
         <span className="font-semibold text-gray-800">{formatAngka(filtered.length)}</span> unit ·{" "}
-        <span className="font-semibold text-gray-800">{formatHa(luas)} Ha</span> lahan terairi
+        <span className="font-semibold text-gray-800">{formatHa(luas)} Ha</span> lahan terairi (status Pemanfaatan)
         {tanpaKoordinat > 0 && <span> · {formatAngka(tanpaKoordinat)} unit belum memiliki koordinat (tidak tampil di peta)</span>}
       </p>
 

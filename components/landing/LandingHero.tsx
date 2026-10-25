@@ -5,7 +5,19 @@ import { STATUS_IRPOM, statusStyle } from "@/lib/status-irpom";
 import type { IrpomFilterOpsi, IrpomStatistik } from "@/lib/irpom-publik-types";
 import { NAMA_DINAS } from "@/lib/instansi";
 
-function KpiCard({ icon: Icon, value, satuan, label }: { icon: LucideIcon; value: string; satuan?: string; label: string }) {
+function KpiCard({
+  icon: Icon,
+  value,
+  satuan,
+  label,
+  catatan,
+}: {
+  icon: LucideIcon;
+  value: string;
+  satuan?: string;
+  label: string;
+  catatan?: string;
+}) {
   return (
     <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-4 text-left backdrop-blur-md sm:px-5">
       <Icon size={18} className="text-sky-200" />
@@ -14,6 +26,7 @@ function KpiCard({ icon: Icon, value, satuan, label }: { icon: LucideIcon; value
         {satuan && <span className="ml-1 text-sm font-semibold text-sky-100">{satuan}</span>}
       </p>
       <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-sky-100">{label}</p>
+      {catatan && <p className="mt-1 text-[10px] leading-tight text-sky-100/75">{catatan}</p>}
     </div>
   );
 }
@@ -81,7 +94,13 @@ export default function LandingHero({
           className="animate-fade-in-up mt-5 grid w-full max-w-4xl grid-cols-2 gap-3 lg:grid-cols-4"
           style={{ animationDelay: "380ms" }}
         >
-          <KpiCard icon={Ruler} value={formatHa(ringkasan.total_luas_ha)} satuan="Ha" label="Luas Lahan Terairi" />
+          <KpiCard
+            icon={Ruler}
+            value={formatHa(ringkasan.total_luas_ha)}
+            satuan="Ha"
+            label="Luas Lahan Terairi"
+            catatan="Hanya unit berstatus Pemanfaatan"
+          />
           <KpiCard icon={Droplets} value={formatAngka(ringkasan.total_unit)} satuan="unit" label="Unit Pompa" />
           <KpiCard icon={Users} value={formatAngka(ringkasan.jumlah_poktan)} label="Kelompok Tani" />
           <KpiCard

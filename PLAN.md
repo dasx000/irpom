@@ -62,7 +62,7 @@ Agar data tidak sekadar menjadi angka statis, sistem dirancang untuk memberikan 
 
 ### A. Metrik Kunci (*Impact KPI Cards*)
 Pada bagian atas halaman publik, ditampilkan ringkasan dampak nyata program:
-1. **Total Luas Lahan Terairi (1.116+ Ha)**: Metrik dampak utama irigasi dalam mendukung ketahanan pangan.
+1. **Total Luas Lahan Terairi (1.116+ Ha)**: Metrik dampak utama irigasi dalam mendukung ketahanan pangan. **Hanya menjumlahkan unit berstatus Pemanfaatan** (pompa yang sudah mengairi sawah); unit Pemberkasan/Pembangunan/Rusak tetap dihitung jumlah unitnya tetapi luasnya tidak. Aturan yang sama berlaku untuk grafik per kecamatan, choropleth, total per kecamatan/desa di Jelajah Wilayah, dan dashboard admin — masing-masing diberi keterangan kecil.
 2. **Total Unit Pompa (127 Unit)**: Jumlah infrastruktur irpom yang terpasang di lapangan. Dihitung dari **jumlah kolom `volume`** (bukan jumlah baris), sehingga tetap benar bila kelak ada baris dengan volume > 1.
 3. **Status Siklus Operasional**:
    * 🔵 **Pemberkasan** (administrasi / verifikasi CPCL)
@@ -89,9 +89,9 @@ Pada bagian atas halaman publik, ditampilkan ringkasan dampak nyata program:
      * 🔴 **Merah**: *Rusak* (perlu perbaikan)
    * Ukuran atau lingkaran luar marker merefleksikan besaran luasan hamparan lahan.
 2. **Choropleth Kepadatan Luasan per Kecamatan**:
-   * Gradasi warna batas kecamatan berdasarkan **Total Luas Lahan Terairi (Ha)**, sehingga area sentra irigasi langsung terlihat kontras.
+   * Gradasi warna batas kecamatan berdasarkan **Total Luas Lahan Terairi (Ha)** (status Pemanfaatan saja), sehingga area sentra irigasi langsung terlihat kontras.
 3. **Popup Titik Interaktif**:
-   * Menampilkan nama kelompok tani, nama ketua (jika ada), kampung/desa, kecamatan, luas hamparan terairi (Ha), status operasional, tahun pengadaan, dan tombol langsung menuju rute navigasi Google Maps.
+   * Menampilkan nama kelompok tani, nama ketua (jika ada), kampung/desa, kecamatan, luas hamparan terairi (Ha), status operasional, tahun pengadaan, dan tombol yang membuka titik lokasinya di Google Maps.
 
 ### D. Direktori & Penjelajah Wilayah (*Explorer*)
 * Fitur pencarian instan: pengguna dapat mencari berdasarkan nama desa, kecamatan, atau nama kelompok tani.

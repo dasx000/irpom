@@ -37,3 +37,14 @@ export function statusStyle(status: string | null | undefined): StatusStyle {
 export function statusLabel(status: string | null | undefined): string {
   return status && status in STATUS_STYLES ? status : STATUS_KOSONG_LABEL;
 }
+
+// "Luas lahan terairi" hanya menghitung unit yang pompanya sudah mengairi
+// sawah (Pemanfaatan). Unit berstatus lain tetap ditampilkan & dihitung
+// jumlah unitnya, tetapi luasnya tidak ikut dijumlahkan. Aturan yang sama
+// dipakai RPC irpom_statistik_publik (0007_luas_terairi_pemanfaatan.sql).
+export const STATUS_TERAIRI: StatusIrpom = "Pemanfaatan";
+export const KETERANGAN_LUAS_TERAIRI = "Luas terairi hanya menghitung unit berstatus Pemanfaatan (pompa yang sudah mengairi sawah).";
+
+export function luasTerairi(u: { status: string | null; luas_ha: number | null }): number {
+  return u.status === STATUS_TERAIRI ? (u.luas_ha ?? 0) : 0;
+}

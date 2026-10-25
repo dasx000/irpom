@@ -38,6 +38,7 @@ Sistem informasi & pemetaan geospasial **Irigasi Perpompaan (IRPOM) Kabupaten Wa
 ### Aturan data
 
 - **Status:** Pemberkasan / Pembangunan / Pemanfaatan / Rusak (unit baru default Pemberkasan).
+- **Luas lahan terairi** (KPI, grafik, choropleth, total per kecamatan/desa) hanya menjumlahkan unit berstatus **Pemanfaatan**. Luas 0 boleh untuk status selain Pemanfaatan.
 - **Sumber Dana:** APBN / APBD / Lainnya.
 - **Identitas unit:** UUID saja (tanpa nomor urut / kode unit). Satu poktan boleh punya lebih dari 1 unit.
 - **Validasi (form & impor), 3 tingkat:**
@@ -72,6 +73,7 @@ Sistem informasi & pemetaan geospasial **Irigasi Perpompaan (IRPOM) Kabupaten Wa
 | `0004_rpc_publik.sql` | RPC halaman publik: `irpom_publik`, `irpom_statistik_publik`, `irpom_filter_opsi` |
 | `0005_view_irpom_lengkap.sql` | View `irpom_lengkap` untuk panel admin (`security_invoker`) |
 | `0006_hapus_top_poktan.sql` | Memperbarui `irpom_statistik_publik` (tanpa data peringkat poktan) |
+| `0007_luas_terairi_pemanfaatan.sql` | `irpom_statistik_publik`: luas terairi hanya dari unit berstatus Pemanfaatan |
 
 ## Setup
 
