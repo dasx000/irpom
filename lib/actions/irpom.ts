@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getPengelola } from "@/lib/auth-guard";
 import { friendlyDbError } from "@/lib/friendly-db-error";
 import { validasiIrpom } from "@/lib/validasi-irpom";
-import { bacaFileImpor } from "@/lib/irpom-excel";
+import { MAX_BARIS_IMPOR, bacaFileImpor, buildFileRevisi } from "@/lib/irpom-excel";
+import { tanggalHariIni } from "@/lib/unduh-xlsx";
 import { STATUS_IRPOM, type StatusIrpom } from "@/lib/status-irpom";
 import type { HasilValidasi, IrpomMentah } from "@/lib/validasi-irpom-types";
 
@@ -106,6 +107,21 @@ export async function pratinjauImpor(_prev: PratinjauState, formData: FormData):
 
   const hasil = await validasiIrpom(rows);
   return { error: null, id: crypto.randomUUID(), namaFile: file.name, baris: hasil.map((h, i) => ({ ...h, mentah: rows[i] })) };
+}
+
+// File Excel berisi baris impor yang tidak disimpan (untuk direvisi lalu
+// diimpor ulang). Dikirim sebagai base64 karena server action tidak bisa
+// mengembalikan unduhan file secara langsung.
+export async function buatFileRevisi(
+  namaFile: string,
+  rows: { mentah: IrpomMentah; alasan: string }[]
+): Promise<{ error: string | null; nama?: string; base64?: string }> {
+  if (!(await getPengelola())) return { error: TIDAK_BERWENANG };
+  if (rows.length === 0) return { error: "Tidak ada baris yang perlu direvisi." };
+  if (rows.length > MAX_BARIS_IMPOR) return { error: "Terlalu banyak baris." };
+  const buffer = await buildFileRevisi(rows);
+  const dasar = namaFile.replace(/\.(xlsx|csv)$/i, "").replace(/[^\w.-]+/g, "-").slice(0, 60) || "impor";
+  return { error: null, nama: `revisi-${dasar}-${tanggalHariIni()}.xlsx`, base64: buffer.toString("base64") };
 }
 
 export interface SimpanImporResult {

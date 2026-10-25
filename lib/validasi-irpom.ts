@@ -124,9 +124,22 @@ export async function validasiIrpom(rows: IrpomMentah[], konteks: KonteksValidas
       else peringatan.push(`Volume "${row.volume}" tidak valid, diisi 1.`);
     }
 
+    const status = cocokStatus(row.status);
+    if (!status)
+      peringatan.push(
+        kosong(row.status)
+          ? "Status kosong."
+          : `Status "${row.status}" di luar 4 pilihan (Pemberkasan/Pembangunan/Pemanfaatan/Rusak), disimpan kosong.`
+      );
+
+    // Luas 0 wajar untuk pompa yang belum/tidak mengairi (Pemberkasan,
+    // Pembangunan, Rusak); hanya status Pemanfaatan yang wajib > 0.
     let luas_ha = parseAngka(row.luas_ha);
-    if (luas_ha == null || luas_ha <= 0) {
+    if (luas_ha == null || luas_ha < 0) {
       peringatan.push(kosong(row.luas_ha) ? "Luas Terairi kosong." : `Luas Terairi "${row.luas_ha}" tidak valid (disimpan kosong).`);
+      luas_ha = null;
+    } else if (luas_ha === 0 && status === "Pemanfaatan") {
+      peringatan.push('Luas Terairi 0 tidak sesuai untuk status Pemanfaatan (pompa sudah mengairi sawah), disimpan kosong.');
       luas_ha = null;
     } else {
       luas_ha = Math.round(luas_ha * 100) / 100;
@@ -146,14 +159,6 @@ export async function validasiIrpom(rows: IrpomMentah[], konteks: KonteksValidas
         kosong(row.sumber_dana)
           ? "Sumber Dana kosong."
           : `Sumber Dana "${row.sumber_dana}" di luar pilihan (${SUMBER_DANA.join("/")}), disimpan kosong.`
-      );
-
-    const status = cocokStatus(row.status);
-    if (!status)
-      peringatan.push(
-        kosong(row.status)
-          ? "Status kosong."
-          : `Status "${row.status}" di luar 4 pilihan (Pemberkasan/Pembangunan/Pemanfaatan/Rusak), disimpan kosong.`
       );
 
     const hasilKoordinat = parseKoordinat(row.latitude, row.longitude);

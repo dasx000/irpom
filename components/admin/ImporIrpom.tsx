@@ -3,7 +3,7 @@
 import { useActionState, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Loader2, UploadCloud, XCircle } from "lucide-react";
-import { pratinjauImpor, simpanImpor, type PratinjauState, type SimpanImporResult } from "@/lib/actions/irpom";
+import { buatFileRevisi, pratinjauImpor, simpanImpor, type BarisPratinjau, type PratinjauState, type SimpanImporResult } from "@/lib/actions/irpom";
 import { formatAngka, formatHa } from "@/lib/format";
 import { statusLabel } from "@/lib/status-irpom";
 import type { TingkatValidasi } from "@/lib/validasi-irpom-types";
@@ -17,6 +17,19 @@ const TINGKAT_STYLE: Record<TingkatValidasi, { label: string; badge: string; ico
 type Tab = "semua" | TingkatValidasi;
 
 const STATE_AWAL: PratinjauState = { error: null };
+
+// Unduh file dari base64 (hasil server action) lewat link sementara.
+function unduhBase64(base64: string, nama: string) {
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nama;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 export default function ImporIrpom() {
   const [state, formAction, isPending] = useActionState<PratinjauState, FormData>(pratinjauImpor, STATE_AWAL);
@@ -68,6 +81,8 @@ function Pratinjau({ state }: { state: PratinjauState }) {
   const [dikecualikan, setDikecualikan] = useState<Set<number>>(new Set());
   const [hasilSimpan, setHasilSimpan] = useState<SimpanImporResult | null>(null);
   const [isSaving, startSaving] = useTransition();
+  const [isUnduh, startUnduh] = useTransition();
+  const [errorRevisi, setErrorRevisi] = useState<string | null>(null);
 
   const baris = useMemo(() => state.baris ?? [], [state.baris]);
   const jumlah = {
@@ -88,9 +103,28 @@ function Pratinjau({ state }: { state: PratinjauState }) {
     });
   }
 
+  // Baris yang tidak ikut disimpan: ditolak + peringatan yang dikecualikan.
+  const tidakDisimpan = baris.filter((b) => b.tingkat === "ditolak" || (b.tingkat === "peringatan" && dikecualikan.has(b.baris)));
+
+  async function unduhRevisi(rows: BarisPratinjau[]) {
+    setErrorRevisi(null);
+    const res = await buatFileRevisi(
+      state.namaFile ?? "impor",
+      rows.map((b) => ({
+        mentah: b.mentah,
+        alasan: `${b.tingkat === "ditolak" ? "DITOLAK" : "DIKECUALIKAN (peringatan)"} — baris ${b.baris} file asli: ${b.pesan.join(" ")}`,
+      }))
+    );
+    if (res.error || !res.base64 || !res.nama) setErrorRevisi(res.error ?? "Gagal membuat file revisi.");
+    else unduhBase64(res.base64, res.nama);
+  }
+
   function simpan() {
     startSaving(async () => {
-      setHasilSimpan(await simpanImpor(akanDisimpan.map((b) => b.mentah)));
+      const hasil = await simpanImpor(akanDisimpan.map((b) => b.mentah));
+      setHasilSimpan(hasil);
+      // Baris yang tidak tersimpan langsung diunduh sebagai file revisi.
+      if (!hasil.error && tidakDisimpan.length > 0) await unduhRevisi(tidakDisimpan);
     });
   }
 
@@ -195,10 +229,22 @@ function Pratinjau({ state }: { state: PratinjauState }) {
                   {isSaving && <Loader2 size={15} className="animate-spin" />}
                   Simpan {formatAngka(akanDisimpan.length)} baris
                 </button>
+                {akanDisimpan.length === 0 && tidakDisimpan.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => startUnduh(() => unduhRevisi(tidakDisimpan))}
+                    disabled={isUnduh}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {isUnduh ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                    Unduh {formatAngka(tidakDisimpan.length)} baris untuk direvisi
+                  </button>
+                )}
                 <p className="text-sm text-gray-500">
                   Baris ditolak ({formatAngka(jumlah.ditolak)}) selalu dilewati
-                  {dikecualikan.size > 0 && `, ${formatAngka(dikecualikan.size)} baris peringatan dikecualikan`}. Untuk membatalkan, perbaiki
-                  file lalu periksa ulang.
+                  {dikecualikan.size > 0 && `, ${formatAngka(dikecualikan.size)} baris peringatan dikecualikan`}.
+                  {tidakDisimpan.length > 0 && " Setelah disimpan, baris yang dilewati otomatis diunduh sebagai Excel untuk direvisi."} Untuk
+                  membatalkan, perbaiki file lalu periksa ulang.
                 </p>
               </>
             ) : (
@@ -210,8 +256,20 @@ function Pratinjau({ state }: { state: PratinjauState }) {
                 <Link href="/admin/irpom" className="font-medium underline">
                   Lihat Data IRPOM
                 </Link>
+                {tidakDisimpan.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => startUnduh(() => unduhRevisi(tidakDisimpan))}
+                    disabled={isUnduh}
+                    className="inline-flex items-center gap-1 font-medium underline disabled:opacity-50"
+                  >
+                    {isUnduh ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                    Unduh lagi file revisi ({formatAngka(tidakDisimpan.length)} baris)
+                  </button>
+                )}
               </div>
             )}
+            {errorRevisi && <p className="w-full text-sm text-red-600">File revisi: {errorRevisi}</p>}
             {hasilSimpan?.error && <p className="w-full text-sm text-red-600">{hasilSimpan.error}</p>}
           </div>
         </div>

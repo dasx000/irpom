@@ -171,7 +171,7 @@ export async function buildTemplateImpor(wilayah: WilayahReferensi[]): Promise<B
     "2. Provinsi = Lampung, Kabupaten = Way Kanan. Kecamatan & Desa harus sesuai daftar di sheet 'Referensi' (besar/kecil huruf dan spasi diabaikan).",
     "   Baris dengan provinsi/kabupaten/kecamatan/desa yang salah akan DITOLAK.",
     `3. Status: ${STATUS_IRPOM.join(" / ")}.`,
-    `4. Luas_Terairi_Ha boleh memakai koma atau titik desimal (contoh 8,5 atau 8.5). Sumber_Dana: ${SUMBER_DANA.join(" / ")}.`,
+    `4. Luas_Terairi_Ha boleh memakai koma atau titik desimal (contoh 8,5 atau 8.5); boleh 0 untuk status selain Pemanfaatan. Sumber_Dana: ${SUMBER_DANA.join(" / ")}.`,
     "5. Latitude (Y) & Longitude (X) dalam derajat desimal, contoh -4.334236 dan 104.662797. Boleh juga menempel koordinat gabungan dari Google Maps di kolom Latitude.",
     "6. Kolom lain yang kosong/tidak valid tetap bisa diimpor, tetapi ditandai PERINGATAN dan kolomnya disimpan kosong.",
     "7. Koordinat yang berjarak <= 10 m dari unit lain atau berada di luar Kabupaten Way Kanan ditandai peringatan dan masuk menu Monitoring Koordinat.",
@@ -234,6 +234,25 @@ export async function buildBackup(rows: (BarisEkspor & { id: string; created_at:
   styleHeader(sheet);
   addBarisEkspor(sheet, rows);
 
+  return Buffer.from(await workbook.xlsx.writeBuffer());
+}
+
+// File revisi impor: baris yang TIDAK disimpan (ditolak / dikecualikan) dengan
+// isian asli + kolom alasan. Formatnya sama dengan template (sheet "Data
+// IRPOM"), jadi bisa diperbaiki lalu langsung diimpor ulang -- kolom alasan
+// tidak dikenali pembaca impor sehingga otomatis diabaikan.
+export async function buildFileRevisi(rows: { mentah: IrpomMentah; alasan: string }[]): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = addDataSheet(workbook);
+  sheet.columns = [...KOLOM.map((k) => ({ header: k.header, key: k.key, width: k.width })), { header: "Alasan_Tidak_Disimpan", key: "alasan", width: 70 }];
+  styleHeader(sheet);
+  const alasanCol = sheet.getColumn("alasan");
+  alasanCol.alignment = { wrapText: true, vertical: "top" };
+  sheet.getCell(1, KOLOM.length + 1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEE2E2" } };
+  rows.forEach(({ mentah, alasan }, i) => {
+    const isian = Object.fromEntries(KOLOM.filter((k) => k.key !== "no").map((k) => [k.key, mentah[k.key as keyof IrpomMentah] ?? ""]));
+    sheet.addRow({ ...isian, no: i + 1, alasan });
+  });
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
