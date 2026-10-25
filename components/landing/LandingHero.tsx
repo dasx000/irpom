@@ -3,6 +3,7 @@ import IrpomFilterBar from "@/components/landing/IrpomFilterBar";
 import { formatAngka, formatHa } from "@/lib/format";
 import { STATUS_IRPOM, statusStyle } from "@/lib/status-irpom";
 import type { IrpomFilterOpsi, IrpomStatistik } from "@/lib/irpom-publik-types";
+import { NAMA_DINAS } from "@/lib/instansi";
 
 function KpiCard({ icon: Icon, value, satuan, label }: { icon: LucideIcon; value: string; satuan?: string; label: string }) {
   return (
@@ -54,7 +55,7 @@ export default function LandingHero({
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-4 py-28 text-center text-white sm:px-6">
         <p className="animate-fade-in-up mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">
-          Pemerintah Kabupaten Way Kanan
+          {NAMA_DINAS}
         </p>
 
         <h1

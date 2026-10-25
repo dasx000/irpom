@@ -33,26 +33,26 @@ export default function Pagination({
       <p>
         {formatAngka(dari)}–{formatAngka(sampai)} dari {formatAngka(total)} data
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         {page > 1 ? (
-          <Link href={href(page - 1)} className={`${btn} hover:bg-gray-50`}>
-            <ChevronLeft size={15} /> Sebelumnya
+          <Link href={href(page - 1)} aria-label="Halaman sebelumnya" className={`${btn} hover:bg-gray-50`}>
+            <ChevronLeft size={15} /> <span className="hidden sm:inline">Sebelumnya</span>
           </Link>
         ) : (
           <span className={`${btn} opacity-40`}>
-            <ChevronLeft size={15} /> Sebelumnya
+            <ChevronLeft size={15} /> <span className="hidden sm:inline">Sebelumnya</span>
           </span>
         )}
-        <span className="tabular-nums">
+        <span className="whitespace-nowrap tabular-nums">
           {page} / {totalPages}
         </span>
         {page < totalPages ? (
-          <Link href={href(page + 1)} className={`${btn} hover:bg-gray-50`}>
-            Berikutnya <ChevronRight size={15} />
+          <Link href={href(page + 1)} aria-label="Halaman berikutnya" className={`${btn} hover:bg-gray-50`}>
+            <span className="hidden sm:inline">Berikutnya</span> <ChevronRight size={15} />
           </Link>
         ) : (
           <span className={`${btn} opacity-40`}>
-            Berikutnya <ChevronRight size={15} />
+            <span className="hidden sm:inline">Berikutnya</span> <ChevronRight size={15} />
           </span>
         )}
       </div>

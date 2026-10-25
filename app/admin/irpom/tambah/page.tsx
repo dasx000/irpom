@@ -1,16 +1,17 @@
 import { requirePengelolaPage } from "@/lib/auth-guard";
-import { getOpsiTahunSumber, getWilayah } from "@/lib/admin-data";
+import { getWilayah } from "@/lib/admin-data";
 import PageHeader from "@/components/admin/PageHeader";
 import FormIrpom from "@/components/admin/FormIrpom";
 
 export default async function TambahIrpomPage() {
   await requirePengelolaPage();
-  const [wilayah, opsi] = await Promise.all([getWilayah(), getOpsiTahunSumber()]);
+  const wilayah = await getWilayah();
 
   return (
-    <div>
+    // Form dibatasi lebarnya agar mudah dibaca, diletakkan di tengah area konten.
+    <div className="mx-auto max-w-3xl">
       <PageHeader title="Tambah Unit IRPOM" description="Kolom bertanda * wajib diisi. Kolom lain boleh dilengkapi kemudian." />
-      <FormIrpom id={null} wilayah={wilayah} sumberDanaList={opsi.sumber} />
+      <FormIrpom id={null} wilayah={wilayah} />
     </div>
   );
 }

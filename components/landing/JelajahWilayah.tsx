@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, Compass, MapPin, Search } from "lucide-react";
+import { ChevronDown, Compass, MapPin, MapPinOff, Search } from "lucide-react";
 import { formatAngka, formatHa, googleMapsTitikUrl } from "@/lib/format";
 import { statusLabel, statusStyle } from "@/lib/status-irpom";
 import type { IrpomPublik } from "@/lib/irpom-publik-types";
@@ -46,19 +46,19 @@ function cocok(u: IrpomPublik, q: string) {
 
 export default function JelajahWilayah({ units }: { units: IrpomPublik[] }) {
   const [query, setQuery] = useState("");
-  const [terbuka, setTerbuka] = useState<Set<string>>(new Set());
+  // Hanya satu kecamatan yang terbuka; membuka yang lain menutup sebelumnya.
+  const [terbuka, setTerbuka] = useState<string | null>(null);
 
   const q = query.trim().toLowerCase();
   const groups = useMemo(() => groupByWilayah(q ? units.filter((u) => cocok(u, q)) : units), [units, q]);
   const jumlahHasil = groups.reduce((s, g) => s + g.desaList.reduce((t, d) => t + d.units.length, 0), 0);
 
-  function toggle(kecamatan: string) {
-    setTerbuka((prev) => {
-      const next = new Set(prev);
-      if (next.has(kecamatan)) next.delete(kecamatan);
-      else next.add(kecamatan);
-      return next;
-    });
+  function toggle(kecamatan: string, tombol: HTMLButtonElement) {
+    const buka = terbuka !== kecamatan;
+    setTerbuka(buka ? kecamatan : null);
+    // Kecamatan lain di atasnya ikut menutup sehingga posisi tombol bergeser;
+    // gulir supaya kecamatan yang baru dibuka tetap terlihat.
+    if (buka) requestAnimationFrame(() => tombol.scrollIntoView({ block: "nearest", behavior: "smooth" }));
   }
 
   return (
@@ -79,7 +79,7 @@ export default function JelajahWilayah({ units }: { units: IrpomPublik[] }) {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Cari desa, kecamatan, kelompok tani, atau ketua..."
+          placeholder="Cari wilayah, kelompok tani, atau ketua..."
           className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pr-4 pl-10 text-sm text-gray-700 outline-none focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-100"
         />
       </div>
@@ -95,20 +95,20 @@ export default function JelajahWilayah({ units }: { units: IrpomPublik[] }) {
       <div className="mt-4 divide-y divide-gray-200 overflow-hidden rounded-xl border border-gray-200">
         {groups.map((g) => {
           // Saat mencari, semua kecamatan hasil pencarian otomatis terbuka.
-          const isOpen = !!q || terbuka.has(g.kecamatan);
+          const isOpen = !!q || terbuka === g.kecamatan;
           return (
             <div key={g.kecamatan}>
               <button
                 type="button"
-                onClick={() => toggle(g.kecamatan)}
+                onClick={(e) => toggle(g.kecamatan, e.currentTarget)}
                 aria-expanded={isOpen}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset ${
+                className={`flex w-full scroll-mt-28 items-center gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset ${
                   isOpen ? "bg-sky-50" : "hover:bg-gray-50"
                 }`}
               >
                 <span className={`h-8 w-1 shrink-0 rounded-full ${isOpen ? "bg-sky-600" : "bg-gray-200"}`} />
                 <span className="min-w-0 flex-1">
-                  <span className={`block font-medium ${isOpen ? "text-sky-900" : "text-gray-900"}`}>{g.kecamatan}</span>
+                  <span className={`block font-medium ${isOpen ? "text-sky-900" : "text-gray-900"}`}>Kecamatan {g.kecamatan}</span>
                   <span className="block text-xs text-gray-500">
                     {formatAngka(g.desaList.length)} desa · {formatAngka(g.unit)} unit · {formatHa(g.luas)} Ha
                   </span>
@@ -120,18 +120,20 @@ export default function JelajahWilayah({ units }: { units: IrpomPublik[] }) {
                 <div className="space-y-4 border-t border-sky-100 bg-slate-50 px-4 pt-3 pb-4">
                   {g.desaList.map((d) => (
                     <div key={d.desa}>
-                      <p className="flex items-baseline justify-between gap-2 text-sm">
-                        <span className="font-semibold text-slate-700">Desa {d.desa}</span>
-                        <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+                      <div className="flex items-center justify-between gap-2 rounded-lg bg-sky-100/70 px-3 py-2">
+                        <p className="flex items-center gap-2 text-sm font-bold text-sky-900">
+                          <span className="size-2 rounded-full bg-sky-600" />
+                          Desa {d.desa}
+                        </p>
+                        <span className="rounded-full bg-sky-700 px-2.5 py-0.5 text-xs font-semibold text-white">
                           {formatHa(d.luas)} Ha
                         </span>
-                      </p>
-                      <ul className="mt-1.5 space-y-1.5">
+                      </div>
+                      <ul className="mt-2 space-y-1.5">
                         {d.units.map((u) => (
                           <li
                             key={u.id}
-                            className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-l-4 border-gray-200 bg-white px-3 py-2 text-sm shadow-xs"
-                            style={{ borderLeftColor: statusStyle(u.status).color }}
+                            className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-xs"
                           >
                             <span className="min-w-0 flex-1 basis-40">
                               <span className="block font-medium text-gray-900">{u.kelompok_tani ?? "-"}</span>
@@ -150,14 +152,20 @@ export default function JelajahWilayah({ units }: { units: IrpomPublik[] }) {
                                 href={googleMapsTitikUrl(u.latitude, u.longitude)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 tabular-nums hover:bg-sky-100"
-                                title="Lihat titik di Google Maps"
+                                className="flex size-8 items-center justify-center rounded-md bg-sky-50 text-sky-700 hover:bg-sky-100"
+                                title="Lihat lokasi di Google Maps"
+                                aria-label={`Lihat lokasi ${u.kelompok_tani ?? "unit"} di Google Maps`}
                               >
-                                <MapPin size={12} />
-                                {u.latitude.toFixed(5)}, {u.longitude.toFixed(5)}
+                                <MapPin size={16} />
                               </a>
                             ) : (
-                              <span className="text-xs text-gray-400">Belum ada koordinat</span>
+                              <span
+                                className="flex size-8 items-center justify-center rounded-md bg-gray-50 text-gray-300"
+                                title="Belum ada koordinat"
+                                aria-label="Belum ada koordinat"
+                              >
+                                <MapPinOff size={16} />
+                              </span>
                             )}
                           </li>
                         ))}

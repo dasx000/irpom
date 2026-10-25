@@ -7,6 +7,7 @@ import { AlertTriangle, ClipboardList, MapPin, StickyNote, Users } from "lucide-
 import { simpanIrpom, type IrpomFormState } from "@/lib/actions/irpom";
 import { parseCoordinateInput } from "@/lib/parse-coordinate";
 import { STATUS_IRPOM } from "@/lib/status-irpom";
+import { SUMBER_DANA } from "@/lib/sumber-dana";
 import type { WilayahOption } from "@/lib/admin-data";
 
 const PetaLokasiPicker = dynamic(() => import("@/components/PetaLokasiPicker"), {
@@ -59,7 +60,6 @@ export interface IrpomInitialData {
   keterangan: string | null;
 }
 
-const SUMBER_DANA_UMUM = ["APBN", "APBD Provinsi", "APBD Kabupaten", "DAK"];
 
 // Angka tunggal: koma desimal diubah ke titik, spasi dibuang.
 function normalisasiAngka(s: string): string {
@@ -69,12 +69,10 @@ function normalisasiAngka(s: string): string {
 export default function FormIrpom({
   id,
   wilayah,
-  sumberDanaList,
   initialData,
 }: {
   id: string | null;
   wilayah: WilayahOption;
-  sumberDanaList: string[];
   initialData?: IrpomInitialData;
 }) {
   const action = simpanIrpom.bind(null, id);
@@ -111,8 +109,6 @@ export default function FormIrpom({
     setLatText(lat.toFixed(7));
     setLngText(lng.toFixed(7));
   }
-
-  const sumberOptions = Array.from(new Set([...SUMBER_DANA_UMUM, ...sumberDanaList]));
 
   return (
     <form
@@ -204,12 +200,18 @@ export default function FormIrpom({
             />
           </Field>
           <Field label="Sumber Dana">
-            <input name="sumber_dana" list="sumber-dana-list" defaultValue={initialData ? (initialData.sumber_dana ?? "") : "APBN"} className={inputClass} />
-            <datalist id="sumber-dana-list">
-              {sumberOptions.map((s) => (
-                <option key={s} value={s} />
+            <select name="sumber_dana" defaultValue={initialData ? (initialData.sumber_dana ?? "") : "APBN"} className={inputClass}>
+              {initialData && !initialData.sumber_dana && <option value="">Belum diisi</option>}
+              {/* Nilai lama di luar pilihan baku tetap ditampilkan agar tidak hilang diam-diam. */}
+              {initialData?.sumber_dana && !(SUMBER_DANA as readonly string[]).includes(initialData.sumber_dana) && (
+                <option value={initialData.sumber_dana}>{initialData.sumber_dana}</option>
+              )}
+              {SUMBER_DANA.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
-            </datalist>
+            </select>
           </Field>
         </div>
       </Section>

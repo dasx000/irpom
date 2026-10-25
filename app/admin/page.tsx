@@ -4,6 +4,7 @@ import { requirePengelolaPage } from "@/lib/auth-guard";
 import { getKelompokDuplikasi, getSemuaIrpom } from "@/lib/admin-data";
 import { formatAngka, formatHa } from "@/lib/format";
 import { STATUS_IRPOM, statusStyle } from "@/lib/status-irpom";
+import { KOLOM_KELENGKAPAN } from "@/lib/kelengkapan";
 import PageHeader from "@/components/admin/PageHeader";
 
 function Kartu({ icon: Icon, label, value, satuan }: { icon: typeof Ruler; label: string; value: string; satuan?: string }) {
@@ -33,13 +34,12 @@ export default async function AdminDashboardPage() {
   const jumlahDesa = new Set(semua.map((u) => u.id_desa)).size;
 
   // Kelengkapan data: kolom yang kosong (data bermasalah dari impor).
-  const kekurangan = [
-    { label: "Belum ada koordinat", jumlah: semua.filter((u) => u.latitude == null || u.longitude == null).length, href: "/admin/irpom?kosong=koordinat" },
-    { label: "Status belum diisi", jumlah: semua.filter((u) => !u.status).length, href: "/admin/irpom?status=kosong" },
-    { label: "Luas belum diisi", jumlah: semua.filter((u) => u.luas_ha == null).length, href: "/admin/irpom?kosong=luas" },
-    { label: "Tahun Anggaran belum diisi", jumlah: semua.filter((u) => u.tahun_anggaran == null).length, href: "/admin/irpom?tahun=kosong" },
-    { label: "Ketua Poktan belum diisi", jumlah: semua.filter((u) => !u.ketua_poktan).length, href: "/admin/irpom?kosong=ketua" },
-  ];
+  const kekurangan = KOLOM_KELENGKAPAN.map((k) => ({
+    key: k.key,
+    label: k.key === "koordinat" ? "Belum ada koordinat" : `${k.label} belum diisi`,
+    jumlah: semua.filter((u) => k.kosong(u)).length,
+    href: `/admin/kelengkapan?kolom=${k.key}`,
+  }));
 
   return (
     <div>
@@ -89,7 +89,7 @@ export default async function AdminDashboardPage() {
               return (
                 <Link
                   key={s ?? "kosong"}
-                  href={`/admin/irpom?status=${s ?? "kosong"}`}
+                  href={s ? `/admin/irpom?status=${s}` : "/admin/kelengkapan?kolom=status"}
                   className="group block rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
                 >
                   <span className="flex items-center justify-between gap-2">
@@ -119,9 +119,9 @@ export default async function AdminDashboardPage() {
           </p>
           <div className="mt-4 space-y-2">
             {kekurangan.map((k) => (
-              <Link key={k.label} href={k.href} className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-gray-50">
+              <Link key={k.key} href={k.href} className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-gray-50">
                 <span className="flex items-center gap-2 text-gray-700">
-                  {k.label === "Belum ada koordinat" ? <MapPinOff size={14} className="text-gray-400" /> : <FileSpreadsheet size={14} className="text-gray-400" />}
+                  {k.key === "koordinat" ? <MapPinOff size={14} className="text-gray-400" /> : <FileSpreadsheet size={14} className="text-gray-400" />}
                   {k.label}
                 </span>
                 <span className="flex items-center gap-1">

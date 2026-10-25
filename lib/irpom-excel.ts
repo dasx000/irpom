@@ -1,6 +1,7 @@
 import "server-only";
 import ExcelJS from "exceljs";
 import { STATUS_IRPOM } from "@/lib/status-irpom";
+import { SUMBER_DANA } from "@/lib/sumber-dana";
 import type { IrpomMentah } from "@/lib/validasi-irpom-types";
 
 // Format kolom dipakai bersama oleh template impor, ekspor, dan backup
@@ -18,7 +19,7 @@ export const KOLOM: { key: KolomKey; header: string; width: number }[] = [
   { key: "kelompok_tani", header: "Kelompok_Tani", width: 24 },
   { key: "ketua_poktan", header: "Ketua_Poktan", width: 20 },
   { key: "volume", header: "Volume", width: 9 },
-  { key: "luas_ha", header: "Luas_Ha", width: 10 },
+  { key: "luas_ha", header: "Luas_Terairi_Ha", width: 16 },
   { key: "tahun_anggaran", header: "Tahun_Anggaran", width: 15 },
   { key: "sumber_dana", header: "Sumber_Dana", width: 13 },
   { key: "status", header: "Status", width: 14 },
@@ -45,7 +46,9 @@ const ALIAS_HEADER: Record<string, KolomKey> = {
   ketuapoktan: "ketua_poktan",
   ketua: "ketua_poktan",
   volume: "volume",
-  luasha: "luas_ha",
+  luasterairiha: "luas_ha",
+  luasterairi: "luas_ha",
+  luasha: "luas_ha", // header lama, tetap diterima
   luas: "luas_ha",
   luaslahan: "luas_ha",
   tahunanggaran: "tahun_anggaran",
@@ -142,9 +145,11 @@ export async function buildTemplateImpor(wilayah: WilayahReferensi[]): Promise<B
     { header: "Status", width: 16 },
     { header: "Kecamatan", width: 20 },
     { header: "Desa", width: 24 },
+    { header: "Sumber Dana", width: 14 },
   ];
   styleHeader(ref);
   STATUS_IRPOM.forEach((s, i) => (ref.getCell(`A${i + 2}`).value = s));
+  SUMBER_DANA.forEach((s, i) => (ref.getCell(`D${i + 2}`).value = s));
   wilayah.forEach((w, i) => (ref.getCell(`B${i + 2}`).value = w.kecamatan));
   let r = 2;
   for (const w of wilayah) {
@@ -154,6 +159,7 @@ export async function buildTemplateImpor(wilayah: WilayahReferensi[]): Promise<B
     }
   }
   applyDropdown(sheet, "status", `Referensi!$A$2:$A$${STATUS_IRPOM.length + 1}`, "Pilih status dari daftar.");
+  applyDropdown(sheet, "sumber_dana", `Referensi!$D$2:$D$${SUMBER_DANA.length + 1}`, "Pilih sumber dana dari daftar.");
   applyDropdown(sheet, "kecamatan", `Referensi!$B$2:$B$${wilayah.length + 1}`, "Pilih kecamatan dari daftar.");
 
   const petunjuk = workbook.addWorksheet("Petunjuk");
@@ -165,7 +171,7 @@ export async function buildTemplateImpor(wilayah: WilayahReferensi[]): Promise<B
     "2. Provinsi = Lampung, Kabupaten = Way Kanan. Kecamatan & Desa harus sesuai daftar di sheet 'Referensi' (besar/kecil huruf dan spasi diabaikan).",
     "   Baris dengan provinsi/kabupaten/kecamatan/desa yang salah akan DITOLAK.",
     `3. Status: ${STATUS_IRPOM.join(" / ")}.`,
-    "4. Luas_Ha boleh memakai koma atau titik desimal (contoh 8,5 atau 8.5).",
+    `4. Luas_Terairi_Ha boleh memakai koma atau titik desimal (contoh 8,5 atau 8.5). Sumber_Dana: ${SUMBER_DANA.join(" / ")}.`,
     "5. Latitude (Y) & Longitude (X) dalam derajat desimal, contoh -4.334236 dan 104.662797. Boleh juga menempel koordinat gabungan dari Google Maps di kolom Latitude.",
     "6. Kolom lain yang kosong/tidak valid tetap bisa diimpor, tetapi ditandai PERINGATAN dan kolomnya disimpan kosong.",
     "7. Koordinat yang berjarak <= 10 m dari unit lain ditandai peringatan dan masuk menu Monitoring Duplikasi.",

@@ -14,7 +14,7 @@ const LABEL_KOLOM: Record<string, string> = {
   kelompok_tani: "Kelompok Tani",
   ketua_poktan: "Ketua Poktan",
   volume: "Volume",
-  luas_ha: "Luas (Ha)",
+  luas_ha: "Luas Terairi (Ha)",
   tahun_anggaran: "Tahun Anggaran",
   sumber_dana: "Sumber Dana",
   status: "Status",
@@ -156,7 +156,7 @@ export default async function AuditPage(props: PageProps<"/admin/audit">) {
                   <td className="px-4 py-2.5 text-xs whitespace-nowrap text-gray-600">{formatTanggalWaktu(r.created_at)}</td>
                   <td className="px-3 py-2.5 text-gray-800">{r.user_id ? (namaPengguna.get(r.user_id) ?? "Akun terhapus") : "Sistem"}</td>
                   <td className="px-3 py-2.5">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${S.badge}`}>{S.label}</span>
+                    <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${S.badge}`}>{S.label}</span>
                   </td>
                   <td className="px-3 py-2.5">
                     <Link href={`/admin/audit?unit=${r.irpom_id}`} className="font-medium text-gray-900 hover:text-sky-700 hover:underline" title="Lihat riwayat unit ini">

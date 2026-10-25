@@ -32,7 +32,7 @@ language sql stable security definer set search_path = public as $$
     and (p_sumber_dana is null or (p_sumber_dana = '' and i.sumber_dana is null) or i.sumber_dana = p_sumber_dana);
 $$;
 
--- Ringkasan untuk kartu KPI, grafik, choropleth, dan tabel poktan terluas.
+-- Ringkasan untuk kartu KPI, grafik, dan choropleth.
 -- Total unit = jumlah kolom volume; poktan unik dihitung per Nama Poktan + Desa;
 -- nilai kosong tidak ikut dihitung (status kosong tampil sebagai "Belum diisi").
 create function irpom_statistik_publik(p_tahun integer default null, p_sumber_dana text default null)
@@ -72,18 +72,6 @@ language sql stable security definer set search_path = public as $$
         from data
         group by id_kecamatan, kecamatan
       ) k
-    ), '[]'::jsonb),
-    'top_poktan', coalesce((
-      select jsonb_agg(jsonb_build_object(
-               'kelompok_tani', t.kelompok_tani, 'desa', t.desa, 'kecamatan', t.kecamatan, 'luas_ha', t.luas_ha
-             ) order by t.luas_ha desc)
-      from (
-        select kelompok_tani, desa, kecamatan, luas_ha
-        from data
-        where luas_ha is not null and kelompok_tani is not null
-        order by luas_ha desc
-        limit 5
-      ) t
     ), '[]'::jsonb)
   );
 $$;

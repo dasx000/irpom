@@ -3,13 +3,16 @@
 import Lambang from "@/components/Lambang";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useFormStatus } from "react-dom";
 import {
   ClipboardList,
+  ClipboardX,
   Copy,
   DatabaseBackup,
   Globe,
   History,
   LayoutDashboard,
+  Loader2,
   LogOut,
   UserCircle,
   UserCog,
@@ -27,6 +30,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/irpom", label: "Data IRPOM", icon: ClipboardList },
+  { href: "/admin/kelengkapan", label: "Belum Lengkap", icon: ClipboardX },
   { href: "/admin/duplikasi", label: "Duplikasi", icon: Copy },
   { href: "/admin/pengguna", label: "Pengguna", icon: UserCog, superAdmin: true },
   { href: "/admin/audit", label: "Audit Log", icon: History, superAdmin: true },
@@ -41,14 +45,38 @@ function isActive(pathname: string, href: string) {
 
 const ROLE_LABEL = { super_admin: "Super Admin", admin: "Admin" } as const;
 
+// Ikon berputar & tombol terkunci selama proses logout di server.
+function TombolKeluar() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      title={pending ? "Sedang keluar..." : "Keluar"}
+      aria-label="Keluar"
+      className="flex size-8 items-center justify-center rounded-md text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:cursor-wait disabled:bg-red-50 disabled:text-red-600"
+    >
+      {pending ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
+    </button>
+  );
+}
+
+// "Diky Saputra" -> "DS"; email -> huruf pertamanya.
+function inisial(label: string) {
+  const kata = label.split("@")[0].trim().split(/\s+/).filter(Boolean);
+  return ((kata[0]?.[0] ?? "") + (kata.length > 1 ? kata[kata.length - 1][0] : "")).toUpperCase() || "?";
+}
+
 export default function AdminNavbar({
   userLabel,
   role,
   jumlahDuplikasi,
+  jumlahBelumLengkap,
 }: {
   userLabel: string;
   role: "super_admin" | "admin";
   jumlahDuplikasi: number;
+  jumlahBelumLengkap: number;
 }) {
   const pathname = usePathname();
   const items = NAV_ITEMS.filter((i) => !i.superAdmin || role === "super_admin");
@@ -64,36 +92,52 @@ export default function AdminNavbar({
           </span>
         </Link>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             href="/"
-            className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+            className="flex items-center gap-1.5 rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800"
             title="Lihat halaman publik"
           >
             <Globe size={15} />
             <span className="hidden sm:inline">Halaman Publik</span>
           </Link>
-          <div className="hidden text-right leading-tight md:block">
-            <p className="max-w-[180px] truncate text-xs font-medium text-gray-800">{userLabel}</p>
-            <p className="text-[11px] text-gray-500">{ROLE_LABEL[role]}</p>
-          </div>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-red-50 hover:text-red-700"
+
+          <span className="hidden h-8 w-px bg-gray-200 sm:block" />
+
+          <div className="flex items-center gap-2">
+            <span
+              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-sky-800"
+              title={userLabel}
             >
-              <LogOut size={15} />
-              <span className="hidden sm:inline">Keluar</span>
-            </button>
-          </form>
+              {inisial(userLabel)}
+            </span>
+            <div className="hidden leading-tight md:block">
+              <p className="max-w-[160px] truncate text-xs font-semibold text-gray-800">{userLabel}</p>
+              <p className="text-[11px] text-gray-500">{ROLE_LABEL[role]}</p>
+            </div>
+            <form action={signOut} data-loading-bar>
+              <TombolKeluar />
+            </form>
+          </div>
         </div>
       </div>
 
-      <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 pb-2 sm:px-5">
+      {/* Garis pemisah selebar container konten, antara baris logo dan menu. */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="h-0.5 rounded-full bg-gray-200" />
+      </div>
+
+      <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 py-2 sm:px-5">
         {items.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
-          const badge = item.href === "/admin/duplikasi" ? jumlahDuplikasi : 0;
+          // Duplikasi = merah (pasti salah input); belum lengkap = kuning (perlu dilengkapi).
+          const badge =
+            item.href === "/admin/duplikasi"
+              ? { n: jumlahDuplikasi, warna: "bg-red-600" }
+              : item.href === "/admin/kelengkapan"
+                ? { n: jumlahBelumLengkap, warna: "bg-amber-500" }
+                : null;
           return (
             <Link
               key={item.href}
@@ -104,9 +148,9 @@ export default function AdminNavbar({
             >
               <Icon size={15} />
               {item.label}
-              {badge > 0 && (
-                <span className="flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white">
-                  {badge}
+              {badge && badge.n > 0 && (
+                <span className={`flex min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold text-white ${badge.warna}`}>
+                  {badge.n}
                 </span>
               )}
             </Link>

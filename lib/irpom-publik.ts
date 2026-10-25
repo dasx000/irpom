@@ -37,7 +37,6 @@ const STATISTIK_KOSONG: IrpomStatistik = {
   ringkasan: { total_unit: 0, total_luas_ha: 0, jumlah_poktan: 0, jumlah_kecamatan: 0, jumlah_desa: 0 },
   per_status: [],
   per_kecamatan: [],
-  top_poktan: [],
 };
 
 export async function getIrpomPublikData(filter: IrpomFilter) {

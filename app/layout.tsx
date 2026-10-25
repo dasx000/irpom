@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "leaflet/dist/leaflet.css";
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "./globals.css";
+import TopLoadingBar from "@/components/TopLoadingBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Monitoring IRPOM - Kabupaten Way Kanan",
-  description: "Data & peta sebaran Irigasi Perpompaan (IRPOM) Kabupaten Way Kanan",
+  description: "Data & peta sebaran Irigasi Perpompaan (IRPOM) Kabupaten Way Kanan — Dinas Tanaman Pangan, Hortikultura, dan Peternakan",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -26,7 +25,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <TopLoadingBar />
+        {children}
+      </body>
     </html>
   );
 }

@@ -4,6 +4,7 @@ import { getPemeriksaWilayah } from "@/lib/desa-geo-server";
 import { parseCoordinateInput } from "@/lib/parse-coordinate";
 import { BATAS_DUPLIKASI_M, jarakMeter, type Titik } from "@/lib/geo";
 import { STATUS_IRPOM, type StatusIrpom } from "@/lib/status-irpom";
+import { SUMBER_DANA, cocokSumberDana } from "@/lib/sumber-dana";
 import type { HasilValidasi, IrpomBersih, IrpomMentah } from "@/lib/validasi-irpom-types";
 
 // Modul validasi bersama untuk form tambah/ubah dan impor (PLAN.md bagian 6,
@@ -125,7 +126,7 @@ export async function validasiIrpom(rows: IrpomMentah[], konteks: KonteksValidas
 
     let luas_ha = parseAngka(row.luas_ha);
     if (luas_ha == null || luas_ha <= 0) {
-      peringatan.push(kosong(row.luas_ha) ? "Luas kosong." : `Luas "${row.luas_ha}" tidak valid (disimpan kosong).`);
+      peringatan.push(kosong(row.luas_ha) ? "Luas Terairi kosong." : `Luas Terairi "${row.luas_ha}" tidak valid (disimpan kosong).`);
       luas_ha = null;
     } else {
       luas_ha = Math.round(luas_ha * 100) / 100;
@@ -139,8 +140,13 @@ export async function validasiIrpom(rows: IrpomMentah[], konteks: KonteksValidas
       tahun_anggaran = null;
     }
 
-    const sumber_dana = kosong(row.sumber_dana) ? null : row.sumber_dana!.trim();
-    if (!sumber_dana) peringatan.push("Sumber Dana kosong.");
+    const sumber_dana = cocokSumberDana(row.sumber_dana);
+    if (!sumber_dana)
+      peringatan.push(
+        kosong(row.sumber_dana)
+          ? "Sumber Dana kosong."
+          : `Sumber Dana "${row.sumber_dana}" di luar pilihan (${SUMBER_DANA.join("/")}), disimpan kosong.`
+      );
 
     const status = cocokStatus(row.status);
     if (!status)

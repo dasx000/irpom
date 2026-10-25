@@ -136,7 +136,7 @@ function Pratinjau({ state }: { state: PratinjauState }) {
                   <th className="w-14 px-2 py-2 font-medium">Baris</th>
                   <th className="px-2 py-2 font-medium">Kelompok Tani</th>
                   <th className="px-2 py-2 font-medium">Desa / Kecamatan</th>
-                  <th className="px-2 py-2 text-right font-medium">Luas</th>
+                  <th className="px-2 py-2 text-right font-medium">Luas Terairi</th>
                   <th className="px-2 py-2 font-medium">Status</th>
                   <th className="px-2 py-2 font-medium">Hasil Pemeriksaan</th>
                 </tr>

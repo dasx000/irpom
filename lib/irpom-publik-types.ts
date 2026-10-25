@@ -27,7 +27,6 @@ export interface IrpomStatistik {
   };
   per_status: { status: string; unit: number }[];
   per_kecamatan: { id_kecamatan: string; kecamatan: string; unit: number; luas_ha: number }[];
-  top_poktan: { kelompok_tani: string; desa: string; kecamatan: string; luas_ha: number }[];
 }
 
 export interface IrpomFilterOpsi {

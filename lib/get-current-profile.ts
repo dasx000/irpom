@@ -36,7 +36,3 @@ export const getCurrentProfile = cache(async (): Promise<{ userId: string; profi
     profile: { id: user.id, email: data.email, nama: data.nama, role: data.role },
   };
 });
-
-export function isSuperAdmin(profile: CurrentProfile | null): boolean {
-  return profile?.role === "super_admin";
-}

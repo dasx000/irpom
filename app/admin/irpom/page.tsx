@@ -49,7 +49,11 @@ export default async function DataIrpomPage(props: PageProps<"/admin/irpom">) {
         }
       />
 
-      <IrpomFilterAdmin filter={filter} kecamatanList={wilayah.kecamatanList} tahunList={opsi.tahun} sumberList={opsi.sumber} size={size} />
+      <IrpomFilterAdmin
+        filter={filter}
+        kecamatanList={wilayah.kecamatanList}
+        desaList={wilayah.desaList}
+        tahunList={opsi.tahun} sumberList={opsi.sumber} size={size} />
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="w-full min-w-[860px] text-sm">
@@ -58,8 +62,8 @@ export default async function DataIrpomPage(props: PageProps<"/admin/irpom">) {
               <th className="w-12 px-3 py-2.5 font-medium">No</th>
               <th className="px-3 py-2.5 font-medium">Kelompok Tani</th>
               <th className="px-3 py-2.5 font-medium">Desa / Kecamatan</th>
-              <th className="px-3 py-2.5 text-right font-medium">Luas (Ha)</th>
-              <th className="px-3 py-2.5 font-medium">TA / Sumber</th>
+              <th className="px-3 py-2.5 text-center font-medium">Luas Terairi (Ha)</th>
+              <th className="px-3 py-2.5 text-center font-medium">TA / Sumber</th>
               <th className="px-3 py-2.5 font-medium">Status</th>
               <th className="px-3 py-2.5 font-medium">Koordinat</th>
               <th className="w-20 px-3 py-2.5" />
@@ -84,11 +88,11 @@ export default async function DataIrpomPage(props: PageProps<"/admin/irpom">) {
                   <p className="text-gray-800">{r.desa}</p>
                   <p className="text-xs text-gray-500">{r.kecamatan}</p>
                 </td>
-                <td className="px-3 py-2.5 text-right tabular-nums font-medium text-gray-900">
+                <td className="px-3 py-2.5 text-center tabular-nums font-medium text-gray-900">
                   {r.luas_ha != null ? formatHa(r.luas_ha) : <span className="text-amber-600">-</span>}
                   {r.volume > 1 && <p className="text-xs font-normal text-gray-500">{r.volume} unit</p>}
                 </td>
-                <td className="px-3 py-2.5 text-gray-700">
+                <td className="px-3 py-2.5 text-center text-gray-700">
                   {r.tahun_anggaran ?? <span className="text-amber-600">-</span>}
                   <p className="text-xs text-gray-500">{r.sumber_dana ?? "-"}</p>
                 </td>

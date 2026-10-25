@@ -12,12 +12,14 @@ const selectClass =
 export default function IrpomFilterAdmin({
   filter,
   kecamatanList,
+  desaList,
   tahunList,
   sumberList,
   size,
 }: {
   filter: FilterAdmin;
   kecamatanList: { id_kecamatan: string; nama_kecamatan: string }[];
+  desaList: { id_desa: number; id_kecamatan: string; nama_desa: string }[];
   tahunList: number[];
   sumberList: string[];
   size: number;
@@ -41,6 +43,7 @@ export default function IrpomFilterAdmin({
   }
 
   const adaFilter = Object.values(filter).some(Boolean);
+  const desaKecamatan = filter.kecamatan ? desaList.filter((d) => d.id_kecamatan === filter.kecamatan) : [];
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
@@ -56,11 +59,26 @@ export default function IrpomFilterAdmin({
       </form>
 
       <div className="mt-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-        <select aria-label="Kecamatan" value={filter.kecamatan} onChange={(e) => apply({ kecamatan: e.target.value })} className={selectClass}>
+        <select aria-label="Kecamatan" value={filter.kecamatan} onChange={(e) => apply({ kecamatan: e.target.value, desa: "" })} className={selectClass}>
           <option value="">Semua Kecamatan</option>
           {kecamatanList.map((k) => (
             <option key={k.id_kecamatan} value={k.id_kecamatan}>
               {k.nama_kecamatan}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Desa"
+          value={filter.kecamatan ? filter.desa : ""}
+          onChange={(e) => apply({ desa: e.target.value })}
+          disabled={!filter.kecamatan}
+          title={filter.kecamatan ? undefined : "Pilih kecamatan terlebih dahulu"}
+          className={`${selectClass} disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400`}
+        >
+          <option value="">{filter.kecamatan ? "Semua Desa" : "Pilih kecamatan dulu"}</option>
+          {desaKecamatan.map((d) => (
+            <option key={d.id_desa} value={String(d.id_desa)}>
+              {d.nama_desa}
             </option>
           ))}
         </select>
@@ -71,7 +89,6 @@ export default function IrpomFilterAdmin({
               {s}
             </option>
           ))}
-          <option value="kosong">Status belum diisi</option>
         </select>
         <select aria-label="Tahun Anggaran" value={filter.tahun} onChange={(e) => apply({ tahun: e.target.value })} className={selectClass}>
           <option value="">Semua Tahun</option>
@@ -80,7 +97,6 @@ export default function IrpomFilterAdmin({
               TA {t}
             </option>
           ))}
-          <option value="kosong">Tahun belum diisi</option>
         </select>
         <select aria-label="Sumber Dana" value={filter.sumber} onChange={(e) => apply({ sumber: e.target.value })} className={selectClass}>
           <option value="">Semua Sumber Dana</option>
@@ -89,13 +105,6 @@ export default function IrpomFilterAdmin({
               {s}
             </option>
           ))}
-          <option value="kosong">Sumber dana belum diisi</option>
-        </select>
-        <select aria-label="Data kosong" value={filter.kosong} onChange={(e) => apply({ kosong: e.target.value })} className={selectClass}>
-          <option value="">Semua Kelengkapan</option>
-          <option value="koordinat">Belum ada koordinat</option>
-          <option value="luas">Luas belum diisi</option>
-          <option value="ketua">Ketua Poktan belum diisi</option>
         </select>
 
         {adaFilter && (
@@ -103,7 +112,7 @@ export default function IrpomFilterAdmin({
             type="button"
             onClick={() => {
               setQ("");
-              apply({ q: "", kecamatan: "", status: "", tahun: "", sumber: "", kosong: "" });
+              apply({ q: "", kecamatan: "", desa: "", status: "", tahun: "", sumber: "" });
             }}
             className="flex items-center gap-1 px-2 py-2 text-sm font-medium text-gray-500 hover:text-red-600"
           >

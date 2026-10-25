@@ -58,7 +58,7 @@ function FormTambah({ onClose }: { onClose: () => void }) {
             <label className="mb-1 block text-xs font-medium text-gray-700">Role *</label>
             <select name="role" defaultValue="admin" className={inputClass}>
               <option value="admin">Admin — kelola data IRPOM</option>
-              <option value="super_admin">Super Admin — + kelola akun, audit log, cadangan</option>
+              <option value="super_admin">Super Admin — + kelola akun &amp; audit log</option>
             </select>
           </div>
           {state.error && <p className="text-sm text-red-600 sm:col-span-2">{state.error}</p>}
@@ -178,13 +178,13 @@ export default function PenggunaManager({ users, currentUserId }: { users: Pengg
                 </td>
                 <td className="px-3 py-2.5">
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "super_admin" ? "bg-purple-100 text-purple-800" : "bg-sky-100 text-sky-800"}`}
+                    className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "super_admin" ? "bg-purple-100 text-purple-800" : "bg-sky-100 text-sky-800"}`}
                   >
                     {ROLE_LABEL[u.role]}
                   </span>
                 </td>
                 <td className="px-3 py-2.5">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${u.aktif ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-600"}`}>
+                  <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${u.aktif ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-600"}`}>
                     {u.aktif ? "Aktif" : "Nonaktif"}
                   </span>
                 </td>

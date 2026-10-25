@@ -128,7 +128,7 @@ export default function LuasKecamatanChart({ data }: { data: IrpomStatistik["per
               <tr className="border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500">
                 <th className="py-2 pr-3 font-medium">Kecamatan</th>
                 <th className="py-2 pr-3 text-right font-medium">Unit</th>
-                <th className="py-2 pr-3 text-right font-medium">Luas (Ha)</th>
+                <th className="py-2 pr-3 text-right font-medium">Luas Terairi (Ha)</th>
                 <th className="py-2 text-right font-medium">Rata-rata/Unit</th>
               </tr>
             </thead>

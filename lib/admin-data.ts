@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { kelompokDuplikasi } from "@/lib/geo";
 import { STATUS_IRPOM } from "@/lib/status-irpom";
+import { FILTER_BELUM_LENGKAP } from "@/lib/kelengkapan";
 
 // Baris view irpom_lengkap (0005_view_irpom_lengkap.sql).
 export interface IrpomLengkap {
@@ -24,15 +25,13 @@ export interface IrpomLengkap {
   updated_at: string;
 }
 
-export const NILAI_KOSONG = "kosong";
-
 export interface FilterAdmin {
   q: string;
   kecamatan: string; // id_kecamatan
-  status: string; // salah satu STATUS_IRPOM atau "kosong"
-  tahun: string; // "2026" atau "kosong"
-  sumber: string; // nama sumber dana atau "kosong"
-  kosong: string; // "" | "koordinat" | "luas" | "ketua" -- kolom yang belum diisi
+  desa: string; // id_desa (hanya berlaku bersama kecamatan)
+  status: string; // salah satu STATUS_IRPOM
+  tahun: string; // "2026"
+  sumber: string; // nama sumber dana
 }
 
 const str = (v: string | string[] | undefined) => (typeof v === "string" ? v.trim() : "");
@@ -41,10 +40,10 @@ export function parseFilterAdmin(sp: Record<string, string | string[] | undefine
   return {
     q: str(sp.q),
     kecamatan: str(sp.kecamatan),
+    desa: str(sp.desa),
     status: str(sp.status),
     tahun: str(sp.tahun),
     sumber: str(sp.sumber),
-    kosong: str(sp.kosong),
   };
 }
 
@@ -54,15 +53,10 @@ function terapkanFilter<Q>(query: Q, f: FilterAdmin): Q {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let q = query as any;
   if (f.kecamatan) q = q.eq("id_kecamatan", f.kecamatan);
-  if (f.status === NILAI_KOSONG) q = q.is("status", null);
-  else if (STATUS_IRPOM.includes(f.status as (typeof STATUS_IRPOM)[number])) q = q.eq("status", f.status);
-  if (f.tahun === NILAI_KOSONG) q = q.is("tahun_anggaran", null);
-  else if (/^\d{4}$/.test(f.tahun)) q = q.eq("tahun_anggaran", Number(f.tahun));
-  if (f.sumber === NILAI_KOSONG) q = q.is("sumber_dana", null);
-  else if (f.sumber) q = q.eq("sumber_dana", f.sumber);
-  if (f.kosong === "koordinat") q = q.or("latitude.is.null,longitude.is.null");
-  else if (f.kosong === "luas") q = q.is("luas_ha", null);
-  else if (f.kosong === "ketua") q = q.or("ketua_poktan.is.null,ketua_poktan.eq.");
+  if (f.kecamatan && /^\d+$/.test(f.desa)) q = q.eq("id_desa", Number(f.desa));
+  if (STATUS_IRPOM.includes(f.status as (typeof STATUS_IRPOM)[number])) q = q.eq("status", f.status);
+  if (/^\d{4}$/.test(f.tahun)) q = q.eq("tahun_anggaran", Number(f.tahun));
+  if (f.sumber) q = q.eq("sumber_dana", f.sumber);
   if (f.q) {
     // Karakter khusus sintaks filter PostgREST dibuang dari kata kunci.
     const kata = f.q.replace(/[,()*%\\]/g, " ").trim();
@@ -85,6 +79,14 @@ export async function getDaftarIrpom(f: FilterAdmin, page: number, size: number)
   const { data, count, error } = await query;
   if (error) console.error("getDaftarIrpom gagal:", error.message);
   return { rows: (data as IrpomLengkap[] | null) ?? [], total: count ?? 0 };
+}
+
+// Jumlah unit yang masih punya kolom kosong (badge menu "Belum Lengkap").
+export async function getJumlahBelumLengkap(): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase.from("irpom").select("id", { count: "exact", head: true }).or(FILTER_BELUM_LENGKAP);
+  if (error) console.error("getJumlahBelumLengkap gagal:", error.message);
+  return count ?? 0;
 }
 
 // Semua baris hasil filter (untuk ekspor), dibaca per 1000 baris.

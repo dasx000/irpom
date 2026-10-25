@@ -7,7 +7,7 @@ import { FILTER_KOSONG_PARAM, type IrpomFilterOpsi } from "@/lib/irpom-publik-ty
 import { STATUS_KOSONG_LABEL } from "@/lib/status-irpom";
 
 const selectClass =
-  "min-w-0 flex-1 rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm text-white backdrop-blur-md focus:border-white/60 focus:outline-none sm:flex-none [&>option]:text-gray-900";
+  "min-w-0 basis-full rounded-lg border border-white/25 bg-white/15 px-3 py-2 text-sm text-white backdrop-blur-md focus:border-white/60 focus:outline-none sm:basis-auto [&>option]:text-gray-900";
 
 // Filter global halaman publik (Tahun Anggaran & Sumber Dana). Disimpan di
 // URL (?tahun=&sumber=) supaya hasil filter bisa dibagikan lewat tautan;

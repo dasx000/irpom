@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { LayersControl, MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Calendar, ExternalLink, Landmark, MapPin, Ruler, User, Users } from "lucide-react";
+import { Calendar, ExternalLink, Landmark, MapPin, MapPinned, User, Users } from "lucide-react";
 import { getMarkerIconHtml, markerSize } from "@/lib/marker-icon";
 import { statusLabel, statusStyle } from "@/lib/status-irpom";
 import { formatHa, googleMapsTitikUrl } from "@/lib/format";
@@ -62,50 +62,49 @@ export default function PetaSebaran({ units }: { units: IrpomPublik[] }) {
         return (
           <Marker key={u.id} position={[u.latitude, u.longitude]} icon={icon}>
             <Popup minWidth={230} maxWidth={270}>
+              {/* Pakai div, bukan <p>: CSS Leaflet memberi margin besar pada <p> di popup. */}
               <div className="-m-1 min-w-[200px]">
-                <div className="flex items-center gap-2.5 border-b border-gray-100 pb-2.5">
+                <div className="flex items-center gap-2.5 border-b border-gray-100 pr-5 pb-2.5">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
                     <Users size={16} />
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] text-gray-400">Kelompok Tani</p>
-                    <p className="truncate text-sm font-semibold text-gray-900">{u.kelompok_tani ?? "-"}</p>
-                  </div>
-                </div>
-
-                <span
-                  className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${statusStyle(u.status).badge}`}
-                >
-                  <span className="size-1.5 rounded-full bg-current" />
-                  {statusLabel(u.status)}
-                </span>
-
-                <div className="mt-2.5 space-y-1.5 text-xs text-gray-600">
-                  <div className="flex items-start gap-2">
-                    <User size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                    <span>Ketua: {u.ketua_poktan ?? "-"}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <MapPin size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                    <span>
-                      Desa {u.desa}, Kec. {u.kecamatan}
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Ruler size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                    <span>Luas terairi {u.luas_ha != null ? `${formatHa(u.luas_ha)} Ha` : "-"}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Calendar size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                    <span>Tahun anggaran {u.tahun_anggaran ?? "-"}</span>
-                  </div>
-                  {u.sumber_dana && (
-                    <div className="flex items-start gap-2">
-                      <Landmark size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                      <span>Sumber dana {u.sumber_dana}</span>
+                  <div className="min-w-0 flex-1 leading-tight">
+                    <div className="text-[11px] text-gray-400">Kelompok Tani</div>
+                    <div className="truncate text-sm font-semibold text-gray-900" title={u.kelompok_tani ?? undefined}>
+                      {u.kelompok_tani ?? "-"}
                     </div>
-                  )}
+                  </div>
                 </div>
+
+                <div className="mt-2.5 flex items-center justify-between gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${statusStyle(u.status).badge}`}
+                  >
+                    <span className="size-1.5 rounded-full bg-current" />
+                    {statusLabel(u.status)}
+                  </span>
+                  <span className="text-sm font-bold text-gray-900 tabular-nums">
+                    {u.luas_ha != null ? `${formatHa(u.luas_ha)} Ha` : "-"}
+                  </span>
+                </div>
+
+                <dl className="mt-2.5 space-y-1.5 text-xs">
+                  {[
+                    { icon: User, label: "Ketua", value: u.ketua_poktan },
+                    { icon: MapPin, label: "Desa", value: u.desa },
+                    { icon: MapPinned, label: "Kecamatan", value: u.kecamatan },
+                    { icon: Calendar, label: "Tahun anggaran", value: u.tahun_anggaran != null ? String(u.tahun_anggaran) : null },
+                    { icon: Landmark, label: "Sumber dana", value: u.sumber_dana },
+                  ].map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="flex items-start gap-2">
+                      <Icon size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                      <dt className="w-24 shrink-0 text-gray-500">{label}</dt>
+                      <dd className={`min-w-0 flex-1 text-right ${value ? "font-medium text-gray-800" : "text-gray-400 italic"}`}>
+                        {value ?? "Belum diisi"}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
 
                 <a
                   href={googleMapsTitikUrl(u.latitude, u.longitude)}

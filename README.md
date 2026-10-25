@@ -25,8 +25,8 @@ Sistem informasi & pemetaan geospasial **Irigasi Perpompaan (IRPOM) Kabupaten Wa
 
 ## Model peran
 
-- **Super Admin** — semua hak Admin + kelola akun admin, audit log, cadangan data.
-- **Admin** — tambah/ubah/hapus data IRPOM, ubah status, impor/ekspor Excel.
+- **Super Admin** — semua hak Admin + kelola akun admin dan audit log.
+- **Admin** — tambah/ubah/hapus data IRPOM, ubah status, impor/ekspor Excel, lengkapi data, cek duplikasi, unduh cadangan.
 
 Akun hanya dibuat oleh Super Admin (pendaftaran publik dimatikan). Akun yang dinonaktifkan juga diblokir di Supabase Auth.
 

@@ -78,8 +78,6 @@ Pada bagian atas halaman publik, ditampilkan ringkasan dampak nyata program:
    * Membantu pimpinan melihat kecamatan dengan produktivitas luasan tertinggi (contoh: Bumi Agung dan Bahuga mencakup hampir 50% dari total luas irigasi).
 2. **Distribusi Status Operasional**:
    * Rekapitulasi visual status unit (Pemberkasan vs Pembangunan vs Pemanfaatan vs Rusak).
-3. **Papan Peringkat Poktan Sentra Luasan Terbesar (Top Impact Groups)**:
-   * Menampilkan kelompok tani pengelola hamparan terluas (misal: Poktan *Margo Rukun* di Kota Dewa seluas 32,76 Ha, Poktan *Ogan Jaya* di Pisang Baru seluas 26,50 Ha).
 
 ### C. Peta Geospasial Tematik Khusus IRPOM
 1. **Marker Spasial Bertema Air / Irigasi dengan 4 Status Warna**:
@@ -259,6 +257,12 @@ Selaras dengan instruksi, antarmuka mempertahankan struktur lama: **Top Navbar**
   * `Data IRPOM` (`/admin/irpom` — tabel data lengkap, pencarian, filter, tambah, edit, hapus, ubah status, ekspor Excel, impor CSV/Excel)
     * **Format ekspor = format template impor** (kolom & urutan sama), sehingga file hasil ekspor dapat langsung dipakai sebagai acuan impor.
     * Tombol **Unduh Template** di halaman impor (file Excel kosong berisi baris judul kolom + 1 contoh baris + keterangan pengisian, termasuk daftar status yang valid).
+    * Filter: pencarian, Kecamatan, Desa (aktif hanya setelah kecamatan dipilih, pilihan dari master wilayah), Status, Tahun Anggaran, Sumber Dana. Tidak ada pilihan "belum diisi" di sini — data yang belum lengkap punya menu sendiri.
+    * **Sumber Dana baku: APBN / APBD / Lainnya** (dropdown di form; di impor, isian "APBD ..." dianggap APBD, nilai lain → peringatan & disimpan kosong).
+  * `Belum Lengkap` (`/admin/kelengkapan` — Admin & Super Admin):
+    * Daftar unit yang masih punya kolom kosong: Koordinat, Status, Luas, Tahun Anggaran, Sumber Dana, Kelompok Tani, Ketua Poktan (Keterangan tidak termasuk).
+    * Chip filter per kolom beserta jumlahnya; tiap unit menampilkan label kolom yang kosong + aksi Ubah/Hapus.
+    * Jumlah unit tampil sebagai *badge* kuning di menu; baris "Kelengkapan Data" di Dashboard mengarah ke sini.
   * `Monitoring Duplikasi` (`/admin/duplikasi` — Admin & Super Admin):
     * Daftar kelompok unit yang **koordinatnya berjarak ≤ 10 meter satu sama lain** (termasuk yang sama persis), beserta rincian unitnya (poktan, desa, kecamatan, luas, status) dan jarak antarunit. Pompa dari hamparan sawah berbeda tidak mungkin sedekat itu, sehingga pasti ada salah input.
     * Tombol aksi per unit hanya **Ubah** (perbaiki koordinat lewat form + peta mini) atau **Hapus** (bila unit ganda). Tidak ada tombol konfirmasi.
@@ -339,6 +343,7 @@ flowchart TD
    * Form input koordinat: 2 kolom Latitude/Longitude, dukungan tempel koordinat Google Maps, dan peta mini dengan pin yang dapat digeser.
    * Fitur impor data (CSV/Excel) dan ekspor laporan Excel.
    * Modul validasi bersama untuk form & impor dengan 3 tingkat (Valid / Peringatan / Ditolak), dan alur impor dengan tabel pratinjau sebelum simpan (lihat bagian 6).
+   * Halaman Data Belum Lengkap: daftar unit dengan kolom kosong, chip filter per kolom.
    * Halaman Monitoring Duplikasi: daftar unit yang koordinatnya berjarak ≤ 10 m, aksi Ubah/Hapus saja.
    * Modul manajemen akun admin khusus untuk Super Admin (nonaktifkan akun = `aktif = false` + blokir di Supabase Auth).
    * Halaman Audit Log (baca saja) khusus Super Admin.

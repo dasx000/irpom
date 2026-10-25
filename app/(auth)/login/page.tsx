@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import PasswordInput from "@/components/PasswordInput";
+import { NAMA_DINAS } from "@/lib/instansi";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,7 +51,9 @@ export default function LoginPage() {
             Pengelolaan data unit pompa, luas lahan terairi, status, dan peta sebaran IRPOM se-Kabupaten Way Kanan.
           </p>
         </div>
-        <p className="text-xs text-sky-200">Monitoring IRPOM</p>
+        <p className="text-xs text-sky-200">
+          {NAMA_DINAS}
+        </p>
       </div>
 
       <div className="flex flex-1 items-center justify-center bg-gray-50 p-6">
