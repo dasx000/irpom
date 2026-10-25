@@ -15,7 +15,7 @@ export default function PendingOverlay({ show, label = "Memproses..." }: { show:
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20"
     >
       <div className="flex items-center gap-2.5 rounded-lg bg-white px-4 py-3 shadow-xl">
-        <Loader2 size={18} className="animate-spin text-green-600" />
+        <Loader2 size={18} className="animate-spin text-sky-600" />
         <span className="text-sm font-medium text-gray-700">{label}</span>
       </div>
     </div>

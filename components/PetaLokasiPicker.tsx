@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, GeoJSON, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import type { Feature, FeatureCollection, Polygon, MultiPolygon } from "geojson";
+import type { Feature, FeatureCollection } from "geojson";
 import MapBaseLayers from "@/components/MapBaseLayers";
-import { getRandomPointInPolygon } from "@/lib/polygon-label-point";
 
 const markerIcon = L.icon({
   iconUrl: "/leaflet/marker-icon.png",
@@ -19,7 +18,7 @@ const markerIcon = L.icon({
 
 // Perkiraan titik tengah Kabupaten Way Kanan, dipakai sebagai default kalau
 // unit belum punya koordinat.
-const WAY_KANAN_CENTER: [number, number] = [-4.45, 104.35];
+const WAY_KANAN_CENTER: [number, number] = [-4.45, 104.45];
 
 const KECAMATAN_GEOJSON_URL = "/geo/way-kanan-kecamatan.geojson";
 const DESA_GEOJSON_URL = "/geo/way-kanan-desa.geojson";
@@ -76,14 +75,14 @@ function KecamatanHighlight({ kecamatanNama }: { kecamatanNama: string | null | 
     <GeoJSON
       key={kecamatanNama}
       data={feature}
-      style={{ color: "#16a34a", weight: 2, fillColor: "#16a34a", fillOpacity: 0.12, dashArray: "5,4" }}
+      style={{ color: "#0284c7", weight: 2, fillColor: "#0284c7", fillOpacity: 0.12, dashArray: "5,4" }}
       interactive={false}
     />
   );
 }
 
 // Fetch sekali di level MapContainer, dipakai bareng oleh DesaHighlight
-// (gambar batas desa) dan AutoPinOnDesaChange (cari titik acak dalam desa) --
+// (gambar batas desa) dan ZoomKeDesa (zoom ke desa terpilih) --
 // supaya file 380KB-an ini cuma di-fetch sekali, tidak dobel.
 function useDesaGeoData(): FeatureCollection | null {
   const [geoData, setGeoData] = useState<FeatureCollection | null>(null);
@@ -143,22 +142,18 @@ function DesaHighlight({
   );
 }
 
-// Begitu user pilih/ganti desa, langsung taruh marker di titik acak dalam
-// batas desa itu -- biar user tidak mulai dari peta kosong/titik tengah
-// kabupaten, tinggal geser-geser sedikit buat presisi. Dilewati saat mount
-// pertama (pola sama seperti KecamatanHighlight) supaya form edit yang sudah
-// punya koordinat presisi tidak tiba-tiba diacak ulang cuma karena halaman
-// dibuka -- cuma jalan kalau desa BERUBAH setelah itu.
-function AutoPinOnDesaChange({
+// Begitu user pilih/ganti desa, peta zoom ke batas desa itu (tanpa memasang
+// pin -- koordinat IRPOM harus titik pompa yang sebenarnya, bukan tebakan).
+// Dilewati saat mount pertama supaya form ubah yang sudah punya koordinat
+// tetap fokus ke pin-nya.
+function ZoomKeDesa({
   desaNama,
   kecamatanNama,
   geoData,
-  onChange,
 }: {
   desaNama: string | null | undefined;
   kecamatanNama: string | null | undefined;
   geoData: FeatureCollection | null;
-  onChange: (lat: number, lng: number) => void;
 }) {
   const map = useMap();
   const isFirstRun = useRef(true);
@@ -178,12 +173,23 @@ function AutoPinOnDesaChange({
     });
     if (!feature) return;
 
-    const point = getRandomPointInPolygon(feature.geometry as Polygon | MultiPolygon);
-    onChange(point.lat, point.lng);
-    map.setView([point.lat, point.lng], 15);
+    const bounds = L.geoJSON(feature).getBounds();
+    if (bounds.isValid()) map.fitBounds(bounds, { padding: [20, 20] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [desaNama]);
+  }, [desaNama, geoData]);
 
+  return null;
+}
+
+// Saat koordinat diisi lewat ketik/tempel (bukan geser pin), pindahkan peta
+// ke pin bila pin berada di luar area yang sedang terlihat.
+function IkutiPin({ latitude, longitude }: { latitude: number | null; longitude: number | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (latitude == null || longitude == null) return;
+    const pos = L.latLng(latitude, longitude);
+    if (!map.getBounds().contains(pos)) map.setView(pos, Math.max(map.getZoom(), 15));
+  }, [map, latitude, longitude]);
   return null;
 }
 
@@ -210,7 +216,8 @@ export default function PetaLokasiPicker({
         <MapBaseLayers />
         <KecamatanHighlight kecamatanNama={kecamatanNama} />
         <DesaHighlight kecamatanNama={kecamatanNama} geoData={desaGeoData} />
-        <AutoPinOnDesaChange desaNama={desaNama} kecamatanNama={kecamatanNama} geoData={desaGeoData} onChange={onChange} />
+        <ZoomKeDesa desaNama={desaNama} kecamatanNama={kecamatanNama} geoData={desaGeoData} />
+        <IkutiPin latitude={latitude} longitude={longitude} />
         <ClickHandler onPick={onChange} />
         {hasPosition && (
           <Marker

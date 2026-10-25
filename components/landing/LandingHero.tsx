@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ChevronDown, Droplets, Map as MapIcon, Ruler, Users, type LucideIcon } from "lucide-react";
 import IrpomFilterBar from "@/components/landing/IrpomFilterBar";
 import { formatAngka, formatHa } from "@/lib/format";
@@ -18,7 +17,7 @@ function KpiCard({ icon: Icon, value, satuan, label }: { icon: LucideIcon; value
   );
 }
 
-// Foto sawah asli Way Kanan sebagai background hero.
+// Foto sawah & pegunungan Way Kanan sebagai background hero.
 export default function LandingHero({
   statistik,
   opsi,
@@ -37,14 +36,20 @@ export default function LandingHero({
   return (
     <section id="beranda" className="relative isolate overflow-hidden">
       <div className="absolute inset-0 -z-20">
-        <Image
-          src="/images/hero-sawah.jpg"
-          alt="Sawah di Kabupaten Way Kanan"
-          fill
-          priority
-          className="scale-105 object-cover blur-[2px]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-sky-950/85 via-sky-900/70 to-sky-950/90" />
+        {/* <picture> biasa (bukan next/image) supaya browser langsung memakai
+            AVIF 53 KB yang sudah dikompres -- optimizer Next akan mengonversi
+            ulang ke WebP yang justru lebih besar. JPEG untuk browser lama. */}
+        <picture>
+          <source srcSet="/images/hero-bg.avif" type="image/avif" />
+          <img
+            src="/images/hero-bg.jpg"
+            alt="Hamparan sawah dan pegunungan di Kabupaten Way Kanan"
+            fetchPriority="high"
+            decoding="async"
+            className="absolute inset-0 h-full w-full scale-105 object-cover blur-[2px]"
+          />
+        </picture>
+        <div className="absolute inset-0 bg-gradient-to-b from-sky-950/80 via-sky-900/55 to-sky-950/90" />
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-4 py-28 text-center text-white sm:px-6">

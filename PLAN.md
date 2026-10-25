@@ -345,6 +345,12 @@ flowchart TD
    * Fitur cadangan data manual (unduh seluruh data dalam 1 file .xlsx), khusus Super Admin.
    * Tombol Unduh Template impor; format ekspor disamakan dengan template impor.
    * Halaman Profil: ubah nama & ganti kata sandi.
+   * **Status: selesai & teruji** (25 Okt 2026) dengan akun uji sementara (sudah dihapus): semua halaman, unduhan, impor (pratinjau → simpan, validasi ulang di server), tambah/ubah (peringatan → konfirmasi), ubah status, hapus, kelola akun (nonaktif = `user_banned`), pengaman akun sendiri, dan pembatasan halaman Super Admin untuk role `admin`. Data dikembalikan ke 127 unit / 1.116,11 Ha; riwayat uji tetap ada di Audit Log.
+     * Perbaikan dari pengujian: panel pratinjau impor sempat *infinite render*; isian Latitude/Longitude yang tertukar kini ditukar otomatis **dengan peringatan**; pesan "Kecamatan dan Desa wajib dipilih" di form.
+     * Halaman: `/admin` (dashboard + kartu duplikasi + kelengkapan data), `/admin/irpom` (tabel, cari, filter, ubah status langsung di tabel, ubah, hapus, ekspor), `/admin/irpom/tambah`, `/admin/irpom/[id]/ubah`, `/admin/irpom/impor`, `/admin/duplikasi`, `/admin/pengguna`, `/admin/audit`, `/admin/backup`, `/admin/profil`.
+     * Unduhan: `/api/admin/irpom/ekspor`, `/api/admin/irpom/template`, `/api/admin/backup` (Super Admin).
+     * Peta mini di form **tidak** lagi memasang pin acak saat desa dipilih (fitur lama AlsinTrack) — hanya zoom ke desa; pin dari tempel/klik/geser.
+     * Seluruh kode CRUD alsintan lama, `AppShell` (sidebar), dan halaman `/dashboard`, `/alsintan`, `/pengguna`, `/profil` lama sudah dihapus.
 
 5. **Fase 5 — Verifikasi Akhir & Pengujian**:
    * Pengujian validitas titik koordinat dan fungsi responsif di tampilan seluler (mobile).

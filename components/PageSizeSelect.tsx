@@ -22,9 +22,9 @@ export default function PageSizeSelect({ basePath }: { basePath: string }) {
     <label className="flex items-center gap-2 text-sm text-gray-600">
       Tampilkan
       <select
-        value={searchParams.get("size") ?? "10"}
+        value={searchParams.get("size") ?? "25"}
         onChange={(e) => handleChange(e.target.value)}
-        className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+        className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
       >
         {PAGE_SIZE_OPTIONS.map((n) => (
           <option key={n} value={n}>
