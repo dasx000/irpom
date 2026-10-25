@@ -187,7 +187,7 @@ Satu modul validasi dipakai bersama oleh form dan impor, dijalankan di sisi serv
 | Tingkat | Kondisi | Akibat |
 | :-: | :--- | :--- |
 | ❌ **Ditolak** | Provinsi bukan *Lampung*; Kabupaten bukan *Way Kanan*; Kecamatan tidak ada di master; Desa tidak ada di master **atau** tidak berada di kecamatan tersebut | Tidak dapat disimpan |
-| ⚠️ **Peringatan** | Koordinat kosong / di luar wilayah Way Kanan (mis. Latitude/Longitude tertukar, tanda minus hilang); **koordinat berjarak ≤ 10 meter dari unit lain** (di database maupun antarbaris di file — 2 hamparan sawah berbeda tidak mungkin pompanya sedekat itu, sehingga unit ini otomatis masuk Monitoring Duplikasi); luas kosong atau ≤ 0; Kelompok Tani kosong; Status di luar 4 pilihan; Tahun Anggaran / Sumber Dana kosong | Tetap dapat disimpan, ditandai dengan keterangan masalahnya |
+| ⚠️ **Peringatan** | Koordinat kosong / di luar wilayah Way Kanan (mis. Latitude/Longitude tertukar, tanda minus hilang — unit masuk Monitoring Koordinat tab "Di luar Way Kanan"); **koordinat berjarak ≤ 10 meter dari unit lain** (di database maupun antarbaris di file — 2 hamparan sawah berbeda tidak mungkin pompanya sedekat itu, sehingga unit ini otomatis masuk Monitoring Koordinat tab "Duplikasi"); luas kosong atau ≤ 0; Kelompok Tani kosong; Status di luar 4 pilihan; Tahun Anggaran / Sumber Dana kosong | Tetap dapat disimpan, ditandai dengan keterangan masalahnya |
 | ✅ **Valid** | Tidak ada masalah | Disimpan |
 
 * **Isi kolom yang bermasalah saat disimpan**: kolom yang kosong atau tidak valid (Status di luar 4 pilihan, luas ≤ 0, Tahun Anggaran / Sumber Dana / Kelompok Tani kosong, koordinat tidak terbaca) **disimpan kosong (NULL)**. Unit tanpa koordinat tidak tampil di peta; nilai kosong tidak ikut terhitung di statistik dan tampil sebagai *"Belum diisi"* pada filter/grafik. Admin melengkapinya kemudian lewat form.
@@ -263,7 +263,9 @@ Selaras dengan instruksi, antarmuka mempertahankan struktur lama: **Top Navbar**
     * Daftar unit yang masih punya kolom kosong: Koordinat, Status, Luas, Tahun Anggaran, Sumber Dana, Kelompok Tani, Ketua Poktan (Keterangan tidak termasuk).
     * Chip filter per kolom beserta jumlahnya; tiap unit menampilkan label kolom yang kosong + aksi Ubah/Hapus.
     * Jumlah unit tampil sebagai *badge* kuning di menu; baris "Kelengkapan Data" di Dashboard mengarah ke sini.
-  * `Monitoring Duplikasi` (`/admin/duplikasi` — Admin & Super Admin):
+  * `Monitoring Koordinat` (`/admin/koordinat` — Admin & Super Admin; alamat lama `/admin/duplikasi` dialihkan ke sini). Dua tab:
+    * Tab **Di luar Way Kanan** (`?tab=luar`): unit yang titiknya di luar batas kabupaten, dengan perkiraan penyebab (Latitude/Longitude tertukar, atau salah ketik / tanda minus) dan aksi Ubah/Hapus.
+    * Tab **Duplikasi** (bawaan):
     * Daftar kelompok unit yang **koordinatnya berjarak ≤ 10 meter satu sama lain** (termasuk yang sama persis), beserta rincian unitnya (poktan, desa, kecamatan, luas, status) dan jarak antarunit. Pompa dari hamparan sawah berbeda tidak mungkin sedekat itu, sehingga pasti ada salah input.
     * Tombol aksi per unit hanya **Ubah** (perbaiki koordinat lewat form + peta mini) atau **Hapus** (bila unit ganda). Tidak ada tombol konfirmasi.
     * Kasus hilang dari daftar secara otomatis setelah koordinatnya diperbaiki atau unitnya dihapus (dihitung langsung dari data, tanpa tabel tambahan).
@@ -303,7 +305,7 @@ flowchart TD
      * Pembaca file harus menangani format campuran: luas memakai **koma desimal** (`5,95`), koordinat memakai **titik desimal** (`-4.334235858`).
      * Ejaan desa di Kecamatan Baradatu sudah dikoreksi langsung di CSV: *"Bakti Negara"* → **"Bhakti Negara"** (2 unit).
      * Seed melewati modul validasi yang sama; target: 127 baris tanpa penolakan.
-     * Kasus duplikasi koordinat yang sudah diketahui dari CSV dan akan langsung muncul di Monitoring Duplikasi setelah seed (7 unit, 3 titik, semuanya berjarak 0 m / identik): No. 13 & 24; No. 33 & 45; No. 67, 69 & 74. Tidak ada pasangan lain yang berjarak ≤ 10 m (bahkan ≤ 50 m).
+     * Kasus duplikasi koordinat yang sudah diketahui dari CSV dan akan langsung muncul di Monitoring Koordinat setelah seed (7 unit, 3 titik, semuanya berjarak 0 m / identik): No. 13 & 24; No. 33 & 45; No. 67, 69 & 74. Tidak ada pasangan lain yang berjarak ≤ 10 m (bahkan ≤ 50 m).
    * Menyiapkan fungsi RPC database Supabase untuk agregasi statistik publik secara instan dan efisien.
    * **Status: file selesai & lolos uji di database lokal sementara** — tinggal dijalankan di Supabase:
      * `0001_skema_irpom.sql` — enum, tabel, trigger `updated_at` & audit log, helper role, RLS.
@@ -344,7 +346,7 @@ flowchart TD
    * Fitur impor data (CSV/Excel) dan ekspor laporan Excel.
    * Modul validasi bersama untuk form & impor dengan 3 tingkat (Valid / Peringatan / Ditolak), dan alur impor dengan tabel pratinjau sebelum simpan (lihat bagian 6).
    * Halaman Data Belum Lengkap: daftar unit dengan kolom kosong, chip filter per kolom.
-   * Halaman Monitoring Duplikasi: daftar unit yang koordinatnya berjarak ≤ 10 m, aksi Ubah/Hapus saja.
+   * Halaman Monitoring Koordinat: tab Duplikasi (berjarak ≤ 10 m) dan tab Di luar Way Kanan, aksi Ubah/Hapus saja.
    * Modul manajemen akun admin khusus untuk Super Admin (nonaktifkan akun = `aktif = false` + blokir di Supabase Auth).
    * Halaman Audit Log (baca saja) khusus Super Admin.
    * Fitur cadangan data manual (unduh seluruh data IRPOM dalam 1 file .xlsx, 1 sheet), untuk semua pengelola.
@@ -352,7 +354,7 @@ flowchart TD
    * Halaman Profil: ubah nama & ganti kata sandi.
    * **Status: selesai & teruji** (25 Okt 2026) dengan akun uji sementara (sudah dihapus): semua halaman, unduhan, impor (pratinjau → simpan, validasi ulang di server), tambah/ubah (peringatan → konfirmasi), ubah status, hapus, kelola akun (nonaktif = `user_banned`), pengaman akun sendiri, dan pembatasan halaman Super Admin untuk role `admin`. Data dikembalikan ke 127 unit / 1.116,11 Ha; riwayat uji tetap ada di Audit Log.
      * Perbaikan dari pengujian: panel pratinjau impor sempat *infinite render*; isian Latitude/Longitude yang tertukar kini ditukar otomatis **dengan peringatan**; pesan "Kecamatan dan Desa wajib dipilih" di form.
-     * Halaman: `/admin` (dashboard + kartu duplikasi + kelengkapan data), `/admin/irpom` (tabel, cari, filter, ubah status langsung di tabel, ubah, hapus, ekspor), `/admin/irpom/tambah`, `/admin/irpom/[id]/ubah`, `/admin/irpom/impor`, `/admin/duplikasi`, `/admin/pengguna`, `/admin/audit`, `/admin/backup`, `/admin/profil`.
+     * Halaman: `/admin` (dashboard + kartu duplikasi + kelengkapan data), `/admin/irpom` (tabel, cari, filter, ubah status langsung di tabel, ubah, hapus, ekspor), `/admin/irpom/tambah`, `/admin/irpom/[id]/ubah`, `/admin/irpom/impor`, `/admin/kelengkapan`, `/admin/koordinat`, `/admin/pengguna`, `/admin/audit`, `/admin/backup`, `/admin/profil`.
      * Unduhan: `/api/admin/irpom/ekspor`, `/api/admin/irpom/template`, `/api/admin/backup` (semua pengelola).
      * Peta mini di form **tidak** lagi memasang pin acak saat desa dipilih (fitur lama AlsinTrack) — hanya zoom ke desa; pin dari tempel/klik/geser.
      * Seluruh kode CRUD alsintan lama, `AppShell` (sidebar), dan halaman `/dashboard`, `/alsintan`, `/pengguna`, `/profil` lama sudah dihapus.

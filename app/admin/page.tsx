@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { AlertTriangle, ChevronRight, Copy, Droplets, FileSpreadsheet, MapPinOff, MapPinned, Plus, Ruler, Upload, Users } from "lucide-react";
+import { AlertTriangle, ChevronRight, LocateFixed, Droplets, FileSpreadsheet, MapPinOff, MapPinned, Plus, Ruler, Upload, Users } from "lucide-react";
 import { requirePengelolaPage } from "@/lib/auth-guard";
-import { getKelompokDuplikasi, getSemuaIrpom } from "@/lib/admin-data";
+import { getMonitoringKoordinat, getSemuaIrpom } from "@/lib/admin-data";
+import { BATAS_DUPLIKASI_M } from "@/lib/geo";
 import { formatAngka, formatHa } from "@/lib/format";
 import { STATUS_IRPOM, statusStyle } from "@/lib/status-irpom";
 import { KOLOM_KELENGKAPAN } from "@/lib/kelengkapan";
@@ -22,7 +23,7 @@ function Kartu({ icon: Icon, label, value, satuan }: { icon: typeof Ruler; label
 
 export default async function AdminDashboardPage() {
   const profile = await requirePengelolaPage();
-  const [semua, duplikasi] = await Promise.all([getSemuaIrpom(), getKelompokDuplikasi()]);
+  const [semua, { duplikasi, diLuar }] = await Promise.all([getSemuaIrpom(), getMonitoringKoordinat()]);
 
   const totalUnit = semua.reduce((s, u) => s + u.volume, 0);
   const totalLuas = semua.reduce((s, u) => s + (u.luas_ha ?? 0), 0);
@@ -58,15 +59,22 @@ export default async function AdminDashboardPage() {
         }
       />
 
-      {duplikasi.length > 0 && (
+      {(duplikasi.length > 0 || diLuar.length > 0) && (
         <Link
-          href="/admin/duplikasi"
+          href={duplikasi.length > 0 ? "/admin/koordinat" : "/admin/koordinat?tab=luar"}
           className="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 hover:bg-red-100"
         >
-          <Copy size={18} className="mt-0.5 shrink-0 text-red-600" />
+          <LocateFixed size={18} className="mt-0.5 shrink-0 text-red-600" />
           <span>
-            <span className="font-semibold">{formatAngka(duplikasi.length)} kasus duplikasi koordinat</span> ({formatAngka(unitDuplikasi)} unit
-            berjarak ≤ 10 m). Periksa dan perbaiki di menu Monitoring Duplikasi →
+            {duplikasi.length > 0 && (
+              <>
+                <span className="font-semibold">{formatAngka(duplikasi.length)} kasus duplikasi koordinat</span> ({formatAngka(unitDuplikasi)} unit
+                berjarak ≤ {BATAS_DUPLIKASI_M} m)
+              </>
+            )}
+            {duplikasi.length > 0 && diLuar.length > 0 && " · "}
+            {diLuar.length > 0 && <span className="font-semibold">{formatAngka(diLuar.length)} unit di luar Way Kanan</span>}
+            . Periksa dan perbaiki di menu Monitoring Koordinat →
           </span>
         </Link>
       )}

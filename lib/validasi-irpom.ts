@@ -171,14 +171,14 @@ export async function validasiIrpom(rows: IrpomMentah[], konteks: KonteksValidas
         const tertukar = diWayKanan(titik.lng, titik.lat);
         peringatan.push(
           tertukar
-            ? "Koordinat berada di luar Kabupaten Way Kanan — kemungkinan Latitude/Longitude tertukar."
-            : "Koordinat berada di luar Kabupaten Way Kanan — periksa tanda minus atau salah ketik angka."
+            ? "Koordinat berada di luar Kabupaten Way Kanan — kemungkinan Latitude/Longitude tertukar (masuk Monitoring Koordinat)."
+            : "Koordinat berada di luar Kabupaten Way Kanan — periksa tanda minus atau salah ketik angka (masuk Monitoring Koordinat)."
         );
       }
       const dekat = titikPembanding.find((t) => jarakMeter(t, titik!) <= BATAS_DUPLIKASI_M);
       if (dekat) {
         peringatan.push(
-          `Koordinat berjarak ${jarakMeter(dekat, titik).toFixed(1)} m dari ${dekat.label} (≤ ${BATAS_DUPLIKASI_M} m, masuk Monitoring Duplikasi).`
+          `Koordinat berjarak ${jarakMeter(dekat, titik).toFixed(1)} m dari ${dekat.label} (≤ ${BATAS_DUPLIKASI_M} m, masuk Monitoring Koordinat).`
         );
       }
       titikPembanding.push({ ...titik, label: `baris ${row.baris ?? i + 1} di file ini` });

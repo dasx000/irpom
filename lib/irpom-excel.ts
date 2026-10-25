@@ -174,7 +174,7 @@ export async function buildTemplateImpor(wilayah: WilayahReferensi[]): Promise<B
     `4. Luas_Terairi_Ha boleh memakai koma atau titik desimal (contoh 8,5 atau 8.5). Sumber_Dana: ${SUMBER_DANA.join(" / ")}.`,
     "5. Latitude (Y) & Longitude (X) dalam derajat desimal, contoh -4.334236 dan 104.662797. Boleh juga menempel koordinat gabungan dari Google Maps di kolom Latitude.",
     "6. Kolom lain yang kosong/tidak valid tetap bisa diimpor, tetapi ditandai PERINGATAN dan kolomnya disimpan kosong.",
-    "7. Koordinat yang berjarak <= 10 m dari unit lain ditandai peringatan dan masuk menu Monitoring Duplikasi.",
+    "7. Koordinat yang berjarak <= 10 m dari unit lain atau berada di luar Kabupaten Way Kanan ditandai peringatan dan masuk menu Monitoring Koordinat.",
     "8. Sebelum disimpan, sistem menampilkan tabel pratinjau: valid / peringatan / ditolak.",
     "9. Kolom No hanya nomor urut dan tidak disimpan. Impor selalu MENAMBAH data baru; untuk mengubah data yang sudah ada gunakan form Ubah.",
   ].forEach((t, i) => {

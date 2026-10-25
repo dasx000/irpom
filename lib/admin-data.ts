@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { kelompokDuplikasi } from "@/lib/geo";
 import { STATUS_IRPOM } from "@/lib/status-irpom";
 import { FILTER_BELUM_LENGKAP } from "@/lib/kelengkapan";
+import { getPemeriksaWilayah } from "@/lib/desa-geo-server";
 
 // Baris view irpom_lengkap (0005_view_irpom_lengkap.sql).
 export interface IrpomLengkap {
@@ -121,10 +122,22 @@ export interface UnitDuplikasi {
   status: string | null;
 }
 
-// Kelompok unit yang koordinatnya berjarak <= 10 m (dihitung langsung dari
-// data, tanpa tabel tambahan -- kasus hilang begitu diperbaiki/dihapus).
-export async function getKelompokDuplikasi(): Promise<UnitDuplikasi[][]> {
-  const semua = await getSemuaIrpom();
+export interface UnitDiLuarWilayah extends UnitDuplikasi {
+  // Titik jatuh di Way Kanan bila lat/lng ditukar -> kemungkinan tertukar.
+  kemungkinanTertukar: boolean;
+}
+
+export interface MonitoringKoordinat {
+  duplikasi: UnitDuplikasi[][];
+  diLuar: UnitDiLuarWilayah[];
+}
+
+// Masalah koordinat, dihitung langsung dari data tanpa tabel tambahan --
+// kasus hilang begitu koordinatnya diperbaiki atau unitnya dihapus:
+// - duplikasi: kelompok unit yang berjarak <= 10 m
+// - diLuar: unit yang titiknya di luar batas Kabupaten Way Kanan
+export async function getMonitoringKoordinat(): Promise<MonitoringKoordinat> {
+  const [semua, diWayKanan] = await Promise.all([getSemuaIrpom(), getPemeriksaWilayah()]);
   const bertitik: UnitDuplikasi[] = semua
     .filter((u) => u.latitude != null && u.longitude != null)
     .map((u) => ({
@@ -137,7 +150,10 @@ export async function getKelompokDuplikasi(): Promise<UnitDuplikasi[][]> {
       luas_ha: u.luas_ha,
       status: u.status,
     }));
-  return kelompokDuplikasi(bertitik);
+  const diLuar = bertitik
+    .filter((u) => !diWayKanan(u.lat, u.lng))
+    .map((u) => ({ ...u, kemungkinanTertukar: diWayKanan(u.lng, u.lat) }));
+  return { duplikasi: kelompokDuplikasi(bertitik), diLuar };
 }
 
 export interface WilayahOption {

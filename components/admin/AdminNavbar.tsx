@@ -7,11 +7,11 @@ import { useFormStatus } from "react-dom";
 import {
   ClipboardList,
   ClipboardX,
-  Copy,
   DatabaseBackup,
   Globe,
   History,
   LayoutDashboard,
+  LocateFixed,
   Loader2,
   LogOut,
   UserCircle,
@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/irpom", label: "Data IRPOM", icon: ClipboardList },
   { href: "/admin/kelengkapan", label: "Belum Lengkap", icon: ClipboardX },
-  { href: "/admin/duplikasi", label: "Duplikasi", icon: Copy },
+  { href: "/admin/koordinat", label: "Monitoring Koordinat", icon: LocateFixed },
   { href: "/admin/pengguna", label: "Pengguna", icon: UserCog, superAdmin: true },
   { href: "/admin/audit", label: "Audit Log", icon: History, superAdmin: true },
   { href: "/admin/backup", label: "Cadangan", icon: DatabaseBackup },
@@ -70,12 +70,12 @@ function inisial(label: string) {
 export default function AdminNavbar({
   userLabel,
   role,
-  jumlahDuplikasi,
+  jumlahMasalahKoordinat,
   jumlahBelumLengkap,
 }: {
   userLabel: string;
   role: "super_admin" | "admin";
-  jumlahDuplikasi: number;
+  jumlahMasalahKoordinat: number;
   jumlahBelumLengkap: number;
 }) {
   const pathname = usePathname();
@@ -131,10 +131,10 @@ export default function AdminNavbar({
         {items.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
-          // Duplikasi = merah (pasti salah input); belum lengkap = kuning (perlu dilengkapi).
+          // Masalah koordinat = merah (pasti salah input); belum lengkap = kuning (perlu dilengkapi).
           const badge =
-            item.href === "/admin/duplikasi"
-              ? { n: jumlahDuplikasi, warna: "bg-red-600" }
+            item.href === "/admin/koordinat"
+              ? { n: jumlahMasalahKoordinat, warna: "bg-red-600" }
               : item.href === "/admin/kelengkapan"
                 ? { n: jumlahBelumLengkap, warna: "bg-amber-500" }
                 : null;
