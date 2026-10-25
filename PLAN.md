@@ -87,7 +87,7 @@ Pada bagian atas halaman publik, ditampilkan ringkasan dampak nyata program:
      * 🟡 **Kuning**: *Pembangunan*
      * 🟢 **Hijau**: *Pemanfaatan* (berfungsi aktif)
      * 🔴 **Merah**: *Rusak* (perlu perbaikan)
-   * Ukuran atau lingkaran luar marker merefleksikan besaran luasan hamparan lahan.
+   * Semua marker berukuran sama (ukuran tidak lagi mewakili luas lahan).
 2. **Choropleth Kepadatan Luasan per Kecamatan**:
    * Gradasi warna batas kecamatan berdasarkan **Total Luas Lahan Terairi (Ha)** (status Pemanfaatan saja), sehingga area sentra irigasi langsung terlihat kontras.
 3. **Popup Titik Interaktif**:
@@ -186,11 +186,11 @@ Satu modul validasi dipakai bersama oleh form dan impor, dijalankan di sisi serv
 
 | Tingkat | Kondisi | Akibat |
 | :-: | :--- | :--- |
-| ❌ **Ditolak** | Provinsi bukan *Lampung*; Kabupaten bukan *Way Kanan*; Kecamatan tidak ada di master; Desa tidak ada di master **atau** tidak berada di kecamatan tersebut | Tidak dapat disimpan |
-| ⚠️ **Peringatan** | Koordinat kosong / di luar wilayah Way Kanan (mis. Latitude/Longitude tertukar, tanda minus hilang — unit masuk Monitoring Koordinat tab "Di luar Way Kanan"); **koordinat berjarak ≤ 10 meter dari unit lain** (di database maupun antarbaris di file — 2 hamparan sawah berbeda tidak mungkin pompanya sedekat itu, sehingga unit ini otomatis masuk Monitoring Koordinat tab "Duplikasi"); luas terairi kosong atau negatif, atau 0 pada status Pemanfaatan (0 boleh untuk Pemberkasan/Pembangunan/Rusak karena pompa belum/tidak mengairi); Kelompok Tani kosong; Status di luar 4 pilihan; Tahun Anggaran / Sumber Dana kosong | Tetap dapat disimpan, ditandai dengan keterangan masalahnya |
+| ❌ **Ditolak** | Provinsi bukan *Lampung*; Kabupaten bukan *Way Kanan*; Kecamatan tidak ada di master; Desa tidak ada di master **atau** tidak berada di kecamatan tersebut; Kelompok Tani kosong (isinya bebas, tidak dicek) | Tidak dapat disimpan |
+| ⚠️ **Peringatan** | Koordinat kosong / di luar wilayah Way Kanan (mis. Latitude/Longitude tertukar, tanda minus hilang — unit masuk Monitoring Koordinat tab "Di luar Way Kanan"); **koordinat berjarak ≤ 10 meter dari unit lain** (di database maupun antarbaris di file — 2 hamparan sawah berbeda tidak mungkin pompanya sedekat itu, sehingga unit ini otomatis masuk Monitoring Koordinat tab "Duplikasi"); luas terairi kosong atau negatif, atau 0 pada status Pemanfaatan (0 boleh untuk Pemberkasan/Pembangunan/Rusak karena pompa belum/tidak mengairi); Status di luar 4 pilihan; Tahun Anggaran / Sumber Dana kosong | Tetap dapat disimpan, ditandai dengan keterangan masalahnya |
 | ✅ **Valid** | Tidak ada masalah | Disimpan |
 
-* **Isi kolom yang bermasalah saat disimpan**: kolom yang kosong atau tidak valid (Status di luar 4 pilihan, luas negatif atau 0 pada status Pemanfaatan, Tahun Anggaran / Sumber Dana / Kelompok Tani kosong, koordinat tidak terbaca) **disimpan kosong (NULL)**. Unit tanpa koordinat tidak tampil di peta; nilai kosong tidak ikut terhitung di statistik dan tampil sebagai *"Belum diisi"* pada filter/grafik. Admin melengkapinya kemudian lewat form.
+* **Isi kolom yang bermasalah saat disimpan**: kolom yang kosong atau tidak valid (Status di luar 4 pilihan, luas negatif atau 0 pada status Pemanfaatan, Tahun Anggaran / Sumber Dana kosong, koordinat tidak terbaca) **disimpan kosong (NULL)**. Unit tanpa koordinat tidak tampil di peta; nilai kosong tidak ikut terhitung di statistik dan tampil sebagai *"Belum diisi"* pada filter/grafik. Admin melengkapinya kemudian lewat form.
 * **Cara menghitung kedekatan koordinat**: memakai jarak sebenarnya di permukaan bumi (rumus *Haversine*) dengan batas **10 meter**, bukan pembulatan digit desimal. Pembulatan digit tidak akurat karena 2 titik yang hanya terpisah 1 m bisa jatuh di pembulatan berbeda.
 * Satu poktan **boleh** menerima lebih dari 1 unit (dalam tahun anggaran yang sama maupun berbeda) dan tidak dianggap duplikasi.
 * Pesan selalu menyebut penyebabnya, contoh: *"Koordinat berada di luar Kabupaten Way Kanan — periksa kemungkinan Latitude/Longitude tertukar."*
@@ -336,7 +336,7 @@ flowchart TD
      * Filter global diletakkan di **hero** (di atas kartu KPI) karena berlaku untuk seluruh halaman; disimpan di URL (`?tahun=2026&sumber=APBN`) sehingga bisa dibagikan.
      * Grafik status memakai **batang horizontal per status** (bukan donut) — tetap terbaca saat hampir semua unit di satu status (saat ini 127/127 Pemanfaatan).
      * Grafik luas per kecamatan: satu sumbu (Ha), jumlah unit di label & tooltip, ada tombol **Grafik / Tabel**.
-     * Peta: marker tetes air, **warna = status**, **ukuran = luas**; choropleth luas per kecamatan; peta otomatis menyesuaikan ke titik hasil filter; popup + tombol rute Google Maps.
+     * Peta: marker pin lokasi, **warna = status** (ukuran seragam); choropleth luas terairi per kecamatan; peta otomatis menyesuaikan ke titik hasil filter; popup + tombol lokasi di Google Maps.
      * Warna kuning status memakai `#ca8a04` (lebih kontras di latar putih).
 
 4. **Fase 4 — Panel Kelola Admin & Super Admin**:

@@ -42,7 +42,7 @@ Sistem informasi & pemetaan geospasial **Irigasi Perpompaan (IRPOM) Kabupaten Wa
 - **Sumber Dana:** APBN / APBD / Lainnya.
 - **Identitas unit:** UUID saja (tanpa nomor urut / kode unit). Satu poktan boleh punya lebih dari 1 unit.
 - **Validasi (form & impor), 3 tingkat:**
-  - ❌ **Ditolak** — provinsi, kabupaten, kecamatan, atau desa tidak sesuai master wilayah.
+  - ❌ **Ditolak** — provinsi, kabupaten, kecamatan, atau desa tidak sesuai master wilayah, atau Kelompok Tani kosong.
   - ⚠️ **Peringatan** — kolom lain kosong/tidak valid (disimpan kosong), koordinat di luar Way Kanan, atau berjarak ≤ 10 m dari unit lain. Lat/lng yang tertukar ditukar otomatis.
   - ✅ **Valid** — selain itu.
 - **Impor** selalu menambah data baru, dengan tabel pratinjau (✅/⚠️/❌) sebelum disimpan; baris peringatan bisa dikecualikan. Format template = format ekspor; hanya sheet `Data IRPOM` yang dibaca.

@@ -1,7 +1,7 @@
 import { getMarkerIconHtml } from "@/lib/marker-icon";
 import { STATUS_IRPOM, STATUS_KOSONG_LABEL } from "@/lib/status-irpom";
 
-// Menjelaskan arti ikon marker peta: warna = status, ukuran = luas lahan.
+// Menjelaskan arti warna ikon marker peta (warna = status).
 // Ikon dirender dari fungsi yang sama persis dengan marker asli
 // (lib/marker-icon.ts) supaya legenda tidak pernah beda dari yang tampil.
 export default function MarkerLegend({ adaStatusKosong = false }: { adaStatusKosong?: boolean }) {
@@ -20,15 +20,6 @@ export default function MarkerLegend({ adaStatusKosong = false }: { adaStatusKos
             {status ?? STATUS_KOSONG_LABEL}
           </span>
         ))}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-gray-600">Ukuran:</span>
-        <span className="inline-flex items-end gap-1">
-          <span dangerouslySetInnerHTML={{ __html: getMarkerIconHtml("Pemanfaatan", 16) }} />
-          <span dangerouslySetInnerHTML={{ __html: getMarkerIconHtml("Pemanfaatan", 26) }} />
-        </span>
-        <span>Luas lahan kecil → besar</span>
       </div>
     </div>
   );

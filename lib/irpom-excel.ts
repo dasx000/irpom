@@ -177,10 +177,37 @@ export async function buildTemplateImpor(wilayah: WilayahReferensi[]): Promise<B
     "7. Koordinat yang berjarak <= 10 m dari unit lain atau berada di luar Kabupaten Way Kanan ditandai peringatan dan masuk menu Monitoring Koordinat.",
     "8. Sebelum disimpan, sistem menampilkan tabel pratinjau: valid / peringatan / ditolak.",
     "9. Kolom No hanya nomor urut dan tidak disimpan. Impor selalu MENAMBAH data baru; untuk mengubah data yang sudah ada gunakan form Ubah.",
+    "",
+    "KOLOM MANA YANG BOLEH KOSONG?",
+    "",
+    "WAJIB DIISI (baris DITOLAK bila kosong / tidak sesuai daftar):",
+    "   - Kecamatan, Desa (harus sesuai daftar di sheet 'Referensi')",
+    "   - Kelompok_Tani (isinya bebas, asal tidak kosong)",
+    "",
+    "BOLEH KOSONG, otomatis diisi:",
+    "   - Provinsi (dianggap Lampung), Kabupaten (dianggap Way Kanan) — tetapi bila diisi harus benar, kalau salah baris DITOLAK.",
+    "   - Volume (dianggap 1).",
+    "",
+    "SEBAIKNYA DIISI — boleh kosong, tetap tersimpan, ditandai PERINGATAN dan masuk menu 'Belum Lengkap' untuk dilengkapi nanti:",
+    "   - Luas_Terairi_Ha, Tahun_Anggaran, Sumber_Dana, Status, Latitude (Y), Longitude (X)",
+    "   - Ketua_Poktan (tanpa peringatan, tetapi tetap masuk menu 'Belum Lengkap').",
+    "",
+    "BEBAS KOSONG (tidak berpengaruh apa pun):",
+    "   - No, Keterangan",
   ].forEach((t, i) => {
     petunjuk.getCell(`A${i + 1}`).value = t;
     if (i === 0) petunjuk.getCell("A1").font = { bold: true, size: 13 };
+    if (t === "KOLOM MANA YANG BOLEH KOSONG?") petunjuk.getCell(`A${i + 1}`).font = { bold: true, size: 12 };
+    if (/^(WAJIB|BOLEH|SEBAIKNYA|BEBAS) /.test(t)) petunjuk.getCell(`A${i + 1}`).font = { bold: true };
   });
+
+  // Penanda di baris judul: kolom wajib bertanda * dan berlatar merah muda.
+  for (const key of ["kecamatan", "desa", "kelompok_tani"] as const) {
+    const cell = sheet.getRow(1).getCell(KOLOM.findIndex((k) => k.key === key) + 1);
+    cell.value = `${cell.value} *`;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFECACA" } };
+    cell.note = "Wajib diisi. Baris tanpa kolom ini akan ditolak.";
+  }
 
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }

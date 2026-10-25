@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { LayersControl, MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Calendar, ExternalLink, Landmark, MapPin, MapPinned, User, Users } from "lucide-react";
-import { getMarkerIconHtml, markerSize } from "@/lib/marker-icon";
+import { RASIO_PIN, UKURAN_MARKER, getMarkerIconHtml } from "@/lib/marker-icon";
 import { statusLabel, statusStyle, luasTerairi } from "@/lib/status-irpom";
 import { formatHa, googleMapsTitikUrl } from "@/lib/format";
 import type { IrpomPublik } from "@/lib/irpom-publik-types";
@@ -34,7 +34,6 @@ function FitToMarkers({ points }: { points: [number, number][] }) {
 // unit yang berkoordinat.
 export default function PetaSebaran({ units }: { units: IrpomPublik[] }) {
   const berkoordinat = units.filter((u): u is IrpomBerkoordinat => u.latitude != null && u.longitude != null);
-  const luasMax = Math.max(0, ...units.map((u) => u.luas_ha ?? 0));
 
   const luasPerKecamatan = useMemo(() => {
     const map = new Map<string, number>();
@@ -51,13 +50,15 @@ export default function PetaSebaran({ units }: { units: IrpomPublik[] }) {
       </MapBaseLayers>
       <FitToMarkers points={berkoordinat.map((u) => [u.latitude, u.longitude])} />
       {berkoordinat.map((u) => {
-        const size = markerSize(u.luas_ha, luasMax);
+        const lebar = UKURAN_MARKER;
+        const tinggi = Math.round(lebar * RASIO_PIN);
+        // Ujung bawah pin = koordinat pompa; popup muncul di atas kepala pin.
         const icon = L.divIcon({
-          html: getMarkerIconHtml(u.status, size),
+          html: getMarkerIconHtml(u.status, lebar),
           className: "",
-          iconSize: [size, size],
-          iconAnchor: [size / 2, size / 2],
-          popupAnchor: [0, -size / 2],
+          iconSize: [lebar, tinggi],
+          iconAnchor: [lebar / 2, tinggi],
+          popupAnchor: [0, -tinggi + 2],
         });
         return (
           <Marker key={u.id} position={[u.latitude, u.longitude]} icon={icon}>

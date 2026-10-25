@@ -110,12 +110,14 @@ export async function validasiIrpom(rows: IrpomMentah[], konteks: KonteksValidas
       pesanTolak.push("Desa tidak dikenali.");
     }
 
+    // Kelompok Tani wajib diisi (isinya bebas, tidak dicek ke daftar mana pun).
+    const kelompok_tani = kosong(row.kelompok_tani) ? null : row.kelompok_tani!.trim();
+    if (!kelompok_tani) pesanTolak.push("Kelompok Tani wajib diisi.");
+
     if (pesanTolak.length > 0 || !desa || !kec) {
       return { baris: row.baris ?? i + 1, tingkat: "ditolak", pesan: pesanTolak, data: null, kecamatan: row.kecamatan ?? null, desa: row.desa ?? null };
     }
 
-    const kelompok_tani = kosong(row.kelompok_tani) ? null : row.kelompok_tani!.trim();
-    if (!kelompok_tani) peringatan.push("Kelompok Tani kosong.");
 
     let volume = 1;
     if (!kosong(row.volume)) {

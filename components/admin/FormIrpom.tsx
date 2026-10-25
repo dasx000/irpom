@@ -162,8 +162,8 @@ export default function FormIrpom({
               ))}
             </select>
           </Field>
-          <Field label="Kelompok Tani">
-            <input name="kelompok_tani" defaultValue={initialData?.kelompok_tani ?? ""} className={inputClass} />
+          <Field label="Kelompok Tani" wajib>
+            <input name="kelompok_tani" required defaultValue={initialData?.kelompok_tani ?? ""} className={inputClass} />
           </Field>
           <Field label="Ketua Poktan">
             <input name="ketua_poktan" defaultValue={initialData?.ketua_poktan ?? ""} className={inputClass} />
