@@ -32,7 +32,7 @@ export interface FilterAdmin {
   status: string; // salah satu STATUS_IRPOM atau "kosong"
   tahun: string; // "2026" atau "kosong"
   sumber: string; // nama sumber dana atau "kosong"
-  koordinat: string; // "" | "kosong"
+  kosong: string; // "" | "koordinat" | "luas" | "ketua" -- kolom yang belum diisi
 }
 
 const str = (v: string | string[] | undefined) => (typeof v === "string" ? v.trim() : "");
@@ -44,7 +44,7 @@ export function parseFilterAdmin(sp: Record<string, string | string[] | undefine
     status: str(sp.status),
     tahun: str(sp.tahun),
     sumber: str(sp.sumber),
-    koordinat: str(sp.koordinat),
+    kosong: str(sp.kosong),
   };
 }
 
@@ -60,7 +60,9 @@ function terapkanFilter<Q>(query: Q, f: FilterAdmin): Q {
   else if (/^\d{4}$/.test(f.tahun)) q = q.eq("tahun_anggaran", Number(f.tahun));
   if (f.sumber === NILAI_KOSONG) q = q.is("sumber_dana", null);
   else if (f.sumber) q = q.eq("sumber_dana", f.sumber);
-  if (f.koordinat === NILAI_KOSONG) q = q.or("latitude.is.null,longitude.is.null");
+  if (f.kosong === "koordinat") q = q.or("latitude.is.null,longitude.is.null");
+  else if (f.kosong === "luas") q = q.is("luas_ha", null);
+  else if (f.kosong === "ketua") q = q.or("ketua_poktan.is.null,ketua_poktan.eq.");
   if (f.q) {
     // Karakter khusus sintaks filter PostgREST dibuang dari kata kunci.
     const kata = f.q.replace(/[,()*%\\]/g, " ").trim();

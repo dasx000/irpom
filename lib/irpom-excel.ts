@@ -214,17 +214,8 @@ export async function buildEksporIrpom(rows: BarisEkspor[]): Promise<Buffer> {
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
-export interface BarisAudit {
-  waktu: string;
-  pengguna: string;
-  aksi: string;
-  irpom_id: string;
-  data_lama: unknown;
-  data_baru: unknown;
-}
-
-// Cadangan data lengkap (Super Admin): sheet IRPOM (+ UUID & waktu) dan Audit Log.
-export async function buildBackup(rows: (BarisEkspor & { id: string; created_at: string; updated_at: string })[], audit: BarisAudit[]) {
+// Cadangan data: 1 sheet IRPOM (+ UUID & waktu dibuat/diubah).
+export async function buildBackup(rows: (BarisEkspor & { id: string; created_at: string; updated_at: string })[]) {
   const workbook = new ExcelJS.Workbook();
 
   const sheet = workbook.addWorksheet("IRPOM");
@@ -236,24 +227,6 @@ export async function buildBackup(rows: (BarisEkspor & { id: string; created_at:
   ];
   styleHeader(sheet);
   addBarisEkspor(sheet, rows);
-
-  const log = workbook.addWorksheet("Audit Log");
-  log.columns = [
-    { header: "Waktu", key: "waktu", width: 22 },
-    { header: "Pengguna", key: "pengguna", width: 28 },
-    { header: "Aksi", key: "aksi", width: 9 },
-    { header: "ID Unit", key: "irpom_id", width: 38 },
-    { header: "Data Lama (JSON)", key: "data_lama", width: 60 },
-    { header: "Data Baru (JSON)", key: "data_baru", width: 60 },
-  ];
-  styleHeader(log);
-  audit.forEach((a) =>
-    log.addRow({
-      ...a,
-      data_lama: a.data_lama ? JSON.stringify(a.data_lama) : "",
-      data_baru: a.data_baru ? JSON.stringify(a.data_baru) : "",
-    })
-  );
 
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }

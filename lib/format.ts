@@ -24,6 +24,7 @@ export function formatTanggalWaktu(iso: string): string {
   });
 }
 
-export function googleMapsRuteUrl(lat: number, lng: number): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+// Membuka Google Maps langsung di titik lokasi (bukan petunjuk rute).
+export function googleMapsTitikUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 }

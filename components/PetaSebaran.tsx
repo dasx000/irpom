@@ -3,10 +3,10 @@
 import { useEffect, useMemo } from "react";
 import { LayersControl, MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Calendar, Landmark, MapPin, Navigation, Ruler, User, Users } from "lucide-react";
+import { Calendar, ExternalLink, Landmark, MapPin, Ruler, User, Users } from "lucide-react";
 import { getMarkerIconHtml, markerSize } from "@/lib/marker-icon";
 import { statusLabel, statusStyle } from "@/lib/status-irpom";
-import { formatHa, googleMapsRuteUrl } from "@/lib/format";
+import { formatHa, googleMapsTitikUrl } from "@/lib/format";
 import type { IrpomPublik } from "@/lib/irpom-publik-types";
 import MapBaseLayers from "@/components/MapBaseLayers";
 import KecamatanChoropleth from "@/components/KecamatanChoropleth";
@@ -108,13 +108,13 @@ export default function PetaSebaran({ units }: { units: IrpomPublik[] }) {
                 </div>
 
                 <a
-                  href={googleMapsRuteUrl(u.latitude, u.longitude)}
+                  href={googleMapsTitikUrl(u.latitude, u.longitude)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 flex items-center justify-center gap-1.5 rounded-md bg-sky-700 px-3 py-1.5 text-xs font-medium !text-white hover:bg-sky-800"
                 >
-                  <Navigation size={13} />
-                  Rute Google Maps
+                  <ExternalLink size={13} />
+                  Lihat di Google Maps
                 </a>
               </div>
             </Popup>

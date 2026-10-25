@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Droplets, LayoutDashboard, User } from "lucide-react";
+import { LayoutDashboard, User } from "lucide-react";
+import Lambang from "@/components/Lambang";
 
 const NAV_ITEMS = [
   { href: "#beranda", label: "Beranda" },
@@ -58,13 +59,7 @@ export default function LandingNavbar({ loggedIn = false }: { loggedIn?: boolean
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
         <a href="#beranda" className="flex min-w-0 items-center gap-2.5">
-          <span
-            className={`flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm shadow-sky-600/30 transition-all duration-300 ${
-              scrolled ? "" : "ring-1 ring-white/25"
-            }`}
-          >
-            <Droplets size={19} />
-          </span>
+          <Lambang tinggi={40} className="drop-shadow" />
           <div className="min-w-0 leading-tight">
             <p className={`truncate font-semibold tracking-tight transition-colors duration-300 ${scrolled ? "text-gray-900" : "text-white"}`}>
               Monitoring IRPOM

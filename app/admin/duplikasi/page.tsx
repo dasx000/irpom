@@ -2,7 +2,7 @@ import { CheckCircle2, MapPin } from "lucide-react";
 import { requirePengelolaPage } from "@/lib/auth-guard";
 import { getKelompokDuplikasi } from "@/lib/admin-data";
 import { BATAS_DUPLIKASI_M, jarakMeter } from "@/lib/geo";
-import { formatAngka, formatHa, googleMapsRuteUrl } from "@/lib/format";
+import { formatAngka, formatHa, googleMapsTitikUrl } from "@/lib/format";
 import { statusLabel, statusStyle } from "@/lib/status-irpom";
 import PageHeader from "@/components/admin/PageHeader";
 import { UbahHapusButtons } from "@/components/admin/IrpomRowActions";
@@ -40,7 +40,7 @@ export default async function DuplikasiPage() {
                     Kasus {gi + 1}: {g.length} unit {jarakMaks < 0.05 ? "di koordinat yang sama persis" : `dalam radius ${jarakMaks.toFixed(1)} m`}
                   </p>
                   <a
-                    href={googleMapsRuteUrl(acuan.lat, acuan.lng)}
+                    href={googleMapsTitikUrl(acuan.lat, acuan.lng)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 font-mono text-xs text-sky-700 hover:underline"

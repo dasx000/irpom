@@ -91,9 +91,11 @@ export default function IrpomFilterAdmin({
           ))}
           <option value="kosong">Sumber dana belum diisi</option>
         </select>
-        <select aria-label="Koordinat" value={filter.koordinat} onChange={(e) => apply({ koordinat: e.target.value })} className={selectClass}>
-          <option value="">Semua Koordinat</option>
-          <option value="kosong">Belum ada koordinat</option>
+        <select aria-label="Data kosong" value={filter.kosong} onChange={(e) => apply({ kosong: e.target.value })} className={selectClass}>
+          <option value="">Semua Kelengkapan</option>
+          <option value="koordinat">Belum ada koordinat</option>
+          <option value="luas">Luas belum diisi</option>
+          <option value="ketua">Ketua Poktan belum diisi</option>
         </select>
 
         {adaFilter && (
@@ -101,7 +103,7 @@ export default function IrpomFilterAdmin({
             type="button"
             onClick={() => {
               setQ("");
-              apply({ q: "", kecamatan: "", status: "", tahun: "", sumber: "", koordinat: "" });
+              apply({ q: "", kecamatan: "", status: "", tahun: "", sumber: "", kosong: "" });
             }}
             className="flex items-center gap-1 px-2 py-2 text-sm font-medium text-gray-500 hover:text-red-600"
           >

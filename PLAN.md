@@ -14,8 +14,8 @@ Transformasi ini didasarkan pada dataset aktual lapangan dari file `DATA IRPOM.c
 2. **Struktur Navigasi Bersih & Konsisten**: Mempertahankan tata letak lama yang terbukti nyaman, elegan, dan mobile-friendly menggunakan **Navbar Atas (Top Navbar)** tanpa menggunakan Sidebar, baik pada tampilan publik maupun panel kelola.
 3. **Pembersihan Total Fitur Usang**: Membuang seluruh kode, tabel, kategori, dan fungsi lama yang tidak relevan (seperti klasifikasi alsintan prapanen/pascapanen, traktor, harvester, sprayer, dan sistem multi-desa penyuluh BPP).
 4. **Dua Tingkatan Akses Khusus Pengelola Data**:
-   * **Super Admin**: Kontrol penuh data, manajemen akun pengguna/admin, audit log, dan cadangan data.
-   * **Admin**: Pengelolaan operasional data IRPOM (tambah, ubah, perbarui status, impor/ekspor).
+   * **Super Admin**: Kontrol penuh data, manajemen akun pengguna/admin, dan audit log.
+   * **Admin**: Pengelolaan operasional data IRPOM (tambah, ubah, perbarui status, impor/ekspor, cadangan data).
 
 ---
 
@@ -121,7 +121,7 @@ Sistem dirancang dengan 3 tingkatan akses:
 |   - Tambah, Ubah, & Hapus data unit IRPOM                                       |
 |   - Pembaruan status (Pemberkasan / Pembangunan / Pemanfaatan / Rusak)          |
 |   - Impor data massal via file Excel / CSV                                      |
-|   - Ekspor data lengkap ke format Excel (.xlsx)                                 |
+|   - Ekspor data lengkap & cadangan data ke format Excel (.xlsx)                |
 +---------------------------------------------------------------------------------+
                                          |
                                          v
@@ -130,7 +130,7 @@ Sistem dirancang dengan 3 tingkatan akses:
 |   - Seluruh hak akses Admin Operasional                                         |
 |   - Manajemen Akun Admin (membuat admin baru, reset sandi, aktivasi/nonaktif)   |
 |   - Audit Log aktivitas perubahan data penting                                  |
-|   - Cadangan data manual: unduh seluruh data dalam 1 file Excel (.xlsx)         |
+|   - (Cadangan data dapat diunduh semua pengelola, lihat Admin)                  |
 +---------------------------------------------------------------------------------+
 ```
 
@@ -267,7 +267,7 @@ Selaras dengan instruksi, antarmuka mempertahankan struktur lama: **Top Navbar**
     * Setiap ubah/hapus tercatat di Audit Log.
   * `Pengguna` (`/admin/pengguna` — khusus Super Admin: daftar akun admin, tambah admin baru, reset sandi, nonaktifkan akun)
   * `Audit Log` (`/admin/audit` — khusus Super Admin: riwayat perubahan data, filter per unit/pengguna/tanggal)
-  * `Cadangan Data` (`/admin/backup` — khusus Super Admin): tombol unduh 1 file Excel (.xlsx) berisi seluruh data — sheet `IRPOM` (termasuk UUID) dan `Audit Log`. Pencadangan dilakukan manual; tidak ada fitur pulihkan otomatis.
+  * `Cadangan Data` (`/admin/backup` — Admin & Super Admin): tombol unduh 1 file Excel (.xlsx) berisi 1 sheet `IRPOM` (seluruh data, termasuk UUID & waktu dibuat/diubah). Audit log tidak ikut dicadangkan. Pencadangan dilakukan manual; tidak ada fitur pulihkan otomatis.
   * `Profil` (`/admin/profil` — ubah nama & ganti kata sandi akun sendiri)
   * `Keluar (Logout)`
 * **Input Koordinat pada Form Tambah/Ubah IRPOM**:
@@ -342,13 +342,13 @@ flowchart TD
    * Halaman Monitoring Duplikasi: daftar unit yang koordinatnya berjarak ≤ 10 m, aksi Ubah/Hapus saja.
    * Modul manajemen akun admin khusus untuk Super Admin (nonaktifkan akun = `aktif = false` + blokir di Supabase Auth).
    * Halaman Audit Log (baca saja) khusus Super Admin.
-   * Fitur cadangan data manual (unduh seluruh data dalam 1 file .xlsx), khusus Super Admin.
+   * Fitur cadangan data manual (unduh seluruh data IRPOM dalam 1 file .xlsx, 1 sheet), untuk semua pengelola.
    * Tombol Unduh Template impor; format ekspor disamakan dengan template impor.
    * Halaman Profil: ubah nama & ganti kata sandi.
    * **Status: selesai & teruji** (25 Okt 2026) dengan akun uji sementara (sudah dihapus): semua halaman, unduhan, impor (pratinjau → simpan, validasi ulang di server), tambah/ubah (peringatan → konfirmasi), ubah status, hapus, kelola akun (nonaktif = `user_banned`), pengaman akun sendiri, dan pembatasan halaman Super Admin untuk role `admin`. Data dikembalikan ke 127 unit / 1.116,11 Ha; riwayat uji tetap ada di Audit Log.
      * Perbaikan dari pengujian: panel pratinjau impor sempat *infinite render*; isian Latitude/Longitude yang tertukar kini ditukar otomatis **dengan peringatan**; pesan "Kecamatan dan Desa wajib dipilih" di form.
      * Halaman: `/admin` (dashboard + kartu duplikasi + kelengkapan data), `/admin/irpom` (tabel, cari, filter, ubah status langsung di tabel, ubah, hapus, ekspor), `/admin/irpom/tambah`, `/admin/irpom/[id]/ubah`, `/admin/irpom/impor`, `/admin/duplikasi`, `/admin/pengguna`, `/admin/audit`, `/admin/backup`, `/admin/profil`.
-     * Unduhan: `/api/admin/irpom/ekspor`, `/api/admin/irpom/template`, `/api/admin/backup` (Super Admin).
+     * Unduhan: `/api/admin/irpom/ekspor`, `/api/admin/irpom/template`, `/api/admin/backup` (semua pengelola).
      * Peta mini di form **tidak** lagi memasang pin acak saat desa dipilih (fitur lama AlsinTrack) — hanya zoom ke desa; pin dari tempel/klik/geser.
      * Seluruh kode CRUD alsintan lama, `AppShell` (sidebar), dan halaman `/dashboard`, `/alsintan`, `/pengguna`, `/profil` lama sudah dihapus.
 

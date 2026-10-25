@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ClipboardList, Copy, Droplets, FileSpreadsheet, MapPinOff, Plus, Ruler, Upload, Users } from "lucide-react";
+import { AlertTriangle, ChevronRight, Copy, Droplets, FileSpreadsheet, MapPinOff, MapPinned, Plus, Ruler, Upload, Users } from "lucide-react";
 import { requirePengelolaPage } from "@/lib/auth-guard";
 import { getKelompokDuplikasi, getSemuaIrpom } from "@/lib/admin-data";
 import { formatAngka, formatHa } from "@/lib/format";
@@ -29,14 +29,16 @@ export default async function AdminDashboardPage() {
   const unitPerStatus = new Map<string | null, number>();
   for (const u of semua) unitPerStatus.set(u.status, (unitPerStatus.get(u.status) ?? 0) + u.volume);
   const unitDuplikasi = duplikasi.reduce((s, g) => s + g.length, 0);
+  const jumlahKecamatan = new Set(semua.map((u) => u.id_kecamatan)).size;
+  const jumlahDesa = new Set(semua.map((u) => u.id_desa)).size;
 
   // Kelengkapan data: kolom yang kosong (data bermasalah dari impor).
   const kekurangan = [
-    { label: "Belum ada koordinat", jumlah: semua.filter((u) => u.latitude == null || u.longitude == null).length, href: "/admin/irpom?koordinat=kosong" },
+    { label: "Belum ada koordinat", jumlah: semua.filter((u) => u.latitude == null || u.longitude == null).length, href: "/admin/irpom?kosong=koordinat" },
     { label: "Status belum diisi", jumlah: semua.filter((u) => !u.status).length, href: "/admin/irpom?status=kosong" },
-    { label: "Luas belum diisi", jumlah: semua.filter((u) => u.luas_ha == null).length, href: "/admin/irpom" },
+    { label: "Luas belum diisi", jumlah: semua.filter((u) => u.luas_ha == null).length, href: "/admin/irpom?kosong=luas" },
     { label: "Tahun Anggaran belum diisi", jumlah: semua.filter((u) => u.tahun_anggaran == null).length, href: "/admin/irpom?tahun=kosong" },
-    { label: "Ketua Poktan belum diisi", jumlah: semua.filter((u) => !u.ketua_poktan).length, href: "/admin/irpom" },
+    { label: "Ketua Poktan belum diisi", jumlah: semua.filter((u) => !u.ketua_poktan).length, href: "/admin/irpom?kosong=ketua" },
   ];
 
   return (
@@ -73,27 +75,37 @@ export default async function AdminDashboardPage() {
         <Kartu icon={Ruler} label="Luas lahan terairi" value={formatHa(totalLuas)} satuan="Ha" />
         <Kartu icon={Droplets} label="Unit pompa" value={formatAngka(totalUnit)} satuan="unit" />
         <Kartu icon={Users} label="Kelompok tani" value={formatAngka(poktan)} />
-        <Kartu icon={ClipboardList} label="Baris data" value={formatAngka(semua.length)} />
+        <Kartu icon={MapPinned} label="Kecamatan / Desa" value={`${formatAngka(jumlahKecamatan)} / ${formatAngka(jumlahDesa)}`} />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <p className="font-semibold text-gray-900">Unit per Status</p>
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-1">
             {[...STATUS_IRPOM, null].map((s) => {
               const jumlah = unitPerStatus.get(s) ?? 0;
               if (s === null && jumlah === 0) return null;
+              const persen = totalUnit > 0 ? (jumlah / totalUnit) * 100 : 0;
               return (
                 <Link
                   key={s ?? "kosong"}
                   href={`/admin/irpom?status=${s ?? "kosong"}`}
-                  className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
+                  className="group block rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
                 >
-                  <span className="flex items-center gap-2 text-gray-800">
-                    <span className="size-2.5 rounded-full" style={{ backgroundColor: statusStyle(s).color }} />
-                    {s ?? "Belum diisi"}
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2 text-gray-800">
+                      <span className="size-2.5 rounded-full" style={{ backgroundColor: statusStyle(s).color }} />
+                      {s ?? "Belum diisi"}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="text-xs tabular-nums text-gray-500">{persen.toFixed(persen > 0 && persen < 1 ? 1 : 0)}%</span>
+                      <span className={`w-10 text-right font-semibold tabular-nums ${jumlah > 0 ? "text-gray-900" : "text-gray-400"}`}>{formatAngka(jumlah)}</span>
+                      <ChevronRight size={14} className="text-gray-300 group-hover:text-gray-500" />
+                    </span>
                   </span>
-                  <span className="font-semibold tabular-nums text-gray-900">{formatAngka(jumlah)}</span>
+                  <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-gray-100">
+                    <span className="block h-full rounded-full" style={{ width: `${persen}%`, backgroundColor: statusStyle(s).color }} />
+                  </span>
                 </Link>
               );
             })}
@@ -107,12 +119,15 @@ export default async function AdminDashboardPage() {
           </p>
           <div className="mt-4 space-y-2">
             {kekurangan.map((k) => (
-              <Link key={k.label} href={k.href} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-gray-50">
+              <Link key={k.label} href={k.href} className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-gray-50">
                 <span className="flex items-center gap-2 text-gray-700">
                   {k.label === "Belum ada koordinat" ? <MapPinOff size={14} className="text-gray-400" /> : <FileSpreadsheet size={14} className="text-gray-400" />}
                   {k.label}
                 </span>
-                <span className={`font-semibold tabular-nums ${k.jumlah > 0 ? "text-amber-700" : "text-gray-400"}`}>{formatAngka(k.jumlah)}</span>
+                <span className="flex items-center gap-1">
+                  <span className={`font-semibold tabular-nums ${k.jumlah > 0 ? "text-amber-700" : "text-gray-400"}`}>{formatAngka(k.jumlah)}</span>
+                  <ChevronRight size={14} className="text-gray-300 group-hover:text-gray-500" />
+                </span>
               </Link>
             ))}
           </div>

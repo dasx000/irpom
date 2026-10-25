@@ -1,16 +1,13 @@
 import { DatabaseBackup, Download } from "lucide-react";
-import { requireSuperAdminPage } from "@/lib/auth-guard";
+import { requirePengelolaPage } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import { formatAngka } from "@/lib/format";
 import PageHeader from "@/components/admin/PageHeader";
 
 export default async function BackupPage() {
-  await requireSuperAdminPage();
+  await requirePengelolaPage();
   const supabase = await createClient();
-  const [{ count: jumlahUnit }, { count: jumlahAudit }] = await Promise.all([
-    supabase.from("irpom").select("id", { count: "exact", head: true }),
-    supabase.from("irpom_audit_log").select("id", { count: "exact", head: true }),
-  ]);
+  const { count: jumlahUnit } = await supabase.from("irpom").select("id", { count: "exact", head: true });
 
   return (
     <div>
@@ -22,16 +19,10 @@ export default async function BackupPage() {
             <DatabaseBackup size={20} />
           </span>
           <div>
-            <p className="font-semibold text-gray-900">Unduh cadangan lengkap (.xlsx)</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-600">
-              <li>
-                Sheet <span className="font-medium">IRPOM</span> — {formatAngka(jumlahUnit ?? 0)} unit, semua kolom termasuk ID (UUID) dan waktu
-                dibuat/diubah.
-              </li>
-              <li>
-                Sheet <span className="font-medium">Audit Log</span> — {formatAngka(jumlahAudit ?? 0)} catatan riwayat perubahan.
-              </li>
-            </ul>
+            <p className="font-semibold text-gray-900">Unduh cadangan data IRPOM (.xlsx)</p>
+            <p className="mt-2 text-sm text-gray-600">
+              Berisi {formatAngka(jumlahUnit ?? 0)} unit dengan semua kolom, termasuk ID (UUID) dan waktu dibuat/diubah.
+            </p>
             <p className="mt-2 text-xs text-gray-500">
               Simpan file ini di tempat aman (mis. Google Drive dinas). Cadangan dibuat manual; tidak ada fitur pulihkan otomatis.
             </p>

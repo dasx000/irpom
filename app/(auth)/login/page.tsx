@@ -1,9 +1,9 @@
 "use client";
 
+import Lambang from "@/components/Lambang";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Droplets } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import PasswordInput from "@/components/PasswordInput";
 
@@ -41,7 +41,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen">
       <div className="hidden flex-1 flex-col justify-between bg-sky-800 p-10 text-white lg:flex">
         <Link href="/" className="flex items-center gap-2">
-          <Droplets size={22} />
+          <span className="rounded-lg bg-white/95 p-1"><Lambang tinggi={36} /></span>
           <span className="font-semibold">Monitoring IRPOM</span>
         </Link>
         <div>
@@ -56,7 +56,7 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center bg-gray-50 p-6">
         <div className="w-full max-w-sm">
           <Link href="/" className="mb-6 flex items-center gap-2 lg:hidden">
-            <Droplets size={20} className="text-sky-700" />
+            <Lambang tinggi={34} />
             <span className="font-semibold text-gray-900">Monitoring IRPOM</span>
           </Link>
 

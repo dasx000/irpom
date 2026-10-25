@@ -1,12 +1,12 @@
 "use client";
 
+import Lambang from "@/components/Lambang";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ClipboardList,
   Copy,
   DatabaseBackup,
-  Droplets,
   Globe,
   History,
   LayoutDashboard,
@@ -30,7 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/duplikasi", label: "Duplikasi", icon: Copy },
   { href: "/admin/pengguna", label: "Pengguna", icon: UserCog, superAdmin: true },
   { href: "/admin/audit", label: "Audit Log", icon: History, superAdmin: true },
-  { href: "/admin/backup", label: "Cadangan", icon: DatabaseBackup, superAdmin: true },
+  { href: "/admin/backup", label: "Cadangan", icon: DatabaseBackup },
   { href: "/admin/profil", label: "Profil", icon: UserCircle },
 ];
 
@@ -57,9 +57,7 @@ export default function AdminNavbar({
     <header className="sticky top-0 z-[1100] border-b border-gray-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
         <Link href="/admin" className="flex min-w-0 items-center gap-2">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sky-600 text-white">
-            <Droplets size={17} />
-          </span>
+          <Lambang tinggi={34} />
           <span className="min-w-0 leading-tight">
             <span className="block truncate text-sm font-semibold text-gray-900">Monitoring IRPOM</span>
             <span className="block truncate text-[11px] text-gray-500">Panel Kelola Data</span>
