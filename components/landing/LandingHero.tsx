@@ -3,7 +3,7 @@ import IrpomFilterBar from "@/components/landing/IrpomFilterBar";
 import { formatAngka, formatHa } from "@/lib/format";
 import { STATUS_IRPOM, statusStyle } from "@/lib/status-irpom";
 import type { IrpomFilterOpsi, IrpomStatistik } from "@/lib/irpom-publik-types";
-import { NAMA_DINAS } from "@/lib/instansi";
+import { KEPALA_DINAS, NAMA_DINAS } from "@/lib/instansi";
 
 function KpiCard({
   icon: Icon,
@@ -67,8 +67,9 @@ export default function LandingHero({
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-4 py-28 text-center text-white sm:px-6">
-        <p className="animate-fade-in-up mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">
-          {NAMA_DINAS}
+        <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">{NAMA_DINAS}</p>
+        <p className="animate-fade-in-up mt-2 mb-6 text-xl leading-snug text-sky-100 sm:text-2xl md:text-3xl" style={{ animationDelay: "50ms" }}>
+          Kepala Dinas: <span className="font-bold text-white">{KEPALA_DINAS}</span>
         </p>
 
         <h1
