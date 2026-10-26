@@ -53,3 +53,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# folder data mentah & cadangan (bisa berisi data pribadi) -- jangan di-commit
+/data/
+/BACKUP/

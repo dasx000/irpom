@@ -1,5 +1,6 @@
 import "server-only";
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import { STATUS_IRPOM } from "@/lib/status-irpom";
 import { SUMBER_DANA } from "@/lib/sumber-dana";
 import type { IrpomMentah } from "@/lib/validasi-irpom-types";
@@ -285,6 +286,24 @@ export async function buildFileRevisi(rows: { mentah: IrpomMentah; alasan: strin
 
 // ============ BACA FILE IMPOR ============
 
+// Hapus komentar sel, catatan, & gambar dari file .xlsx: relasi ke
+// comments / vmlDrawing / drawing di tiap sheet beserta tag pemanggilnya.
+// Isi sel tidak tersentuh.
+async function buangKomentarXlsx(buffer: Buffer): Promise<Buffer> {
+  const zip = await JSZip.loadAsync(buffer);
+  const tipeDibuang = /\/(comments|vmlDrawing|drawing|threadedComment|person)"/;
+  for (const nama of Object.keys(zip.files)) {
+    if (/^xl\/worksheets\/_rels\/[^/]+\.rels$/.test(nama)) {
+      const xml = await zip.file(nama)!.async("string");
+      zip.file(nama, xml.replace(/<Relationship\b[^>]*>(?:<\/Relationship>)?/g, (rel) => (tipeDibuang.test(rel) ? "" : rel)));
+    } else if (/^xl\/worksheets\/[^/]+\.xml$/.test(nama)) {
+      const xml = await zip.file(nama)!.async("string");
+      zip.file(nama, xml.replace(/<(legacyDrawing|drawing)\b[^>]*\/>/g, ""));
+    }
+  }
+  return zip.generateAsync({ type: "nodebuffer" });
+}
+
 function cellText(value: ExcelJS.CellValue): string {
   if (value == null) return "";
   if (value instanceof Date) return value.toISOString().slice(0, 10);
@@ -333,12 +352,24 @@ export async function bacaFileImpor(file: File): Promise<{ rows: IrpomMentah[]; 
   if (nama.endsWith(".csv")) {
     table = parseCsv(await file.text());
   } else if (nama.endsWith(".xlsx")) {
-    const workbook = new ExcelJS.Workbook();
+    let workbook = new ExcelJS.Workbook();
+    const buffer = Buffer.from(await file.arrayBuffer());
     try {
-      const buffer = Buffer.from(await file.arrayBuffer());
       await workbook.xlsx.load(buffer as unknown as Parameters<typeof workbook.xlsx.load>[0]);
     } catch {
-      return { rows: [], error: "File tidak bisa dibaca. Pastikan formatnya .xlsx dan tidak rusak." };
+      // File dari aplikasi selain Excel (WPS, Google Sheets, library lain)
+      // kadang ditolak ExcelJS karena bagian komentar/gambarnya. Bagian itu
+      // tidak dipakai untuk impor, jadi dibuang lalu dicoba sekali lagi.
+      try {
+        workbook = new ExcelJS.Workbook();
+        const bersih = await buangKomentarXlsx(buffer);
+        await workbook.xlsx.load(bersih as unknown as Parameters<typeof workbook.xlsx.load>[0]);
+      } catch {
+        return {
+          rows: [],
+          error: "File tidak bisa dibaca. Pastikan formatnya .xlsx dan tidak rusak (coba buka lalu simpan ulang di Excel).",
+        };
+      }
     }
     const sheet = workbook.getWorksheet(SHEET_DATA) ?? workbook.worksheets[0];
     if (!sheet) return { rows: [], error: "Sheet data tidak ditemukan di file ini." };

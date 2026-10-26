@@ -56,12 +56,13 @@ export default async function DataIrpomPage(props: PageProps<"/admin/irpom">) {
         tahunList={opsi.tahun} sumberList={opsi.sumber} size={size} />
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full min-w-[860px] text-sm">
+        <table className="w-full min-w-[920px] text-sm">
           <thead className="bg-gray-50">
             <tr className="text-left text-xs uppercase tracking-wide text-gray-500">
               <th className="w-12 px-3 py-2.5 font-medium">No</th>
+              <th className="px-3 py-2.5 font-medium">Kecamatan</th>
+              <th className="px-3 py-2.5 font-medium">Desa</th>
               <th className="px-3 py-2.5 font-medium">Kelompok Tani</th>
-              <th className="px-3 py-2.5 font-medium">Desa / Kecamatan</th>
               <th className="px-3 py-2.5 text-center font-medium">Luas Terairi (Ha)</th>
               <th className="px-3 py-2.5 text-center font-medium">TA / Sumber</th>
               <th className="px-3 py-2.5 font-medium">Status</th>
@@ -72,7 +73,7 @@ export default async function DataIrpomPage(props: PageProps<"/admin/irpom">) {
           <tbody className="divide-y divide-gray-100">
             {rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-3 py-12 text-center text-gray-400">
+                <td colSpan={9} className="px-3 py-12 text-center text-gray-400">
                   Tidak ada data yang cocok.
                 </td>
               </tr>
@@ -80,13 +81,11 @@ export default async function DataIrpomPage(props: PageProps<"/admin/irpom">) {
             {rows.map((r, i) => (
               <tr key={r.id} className="hover:bg-gray-50/60">
                 <td className="px-3 py-2.5 tabular-nums text-gray-400">{(page - 1) * size + i + 1}</td>
+                <td className="px-3 py-2.5 text-gray-800">{r.kecamatan}</td>
+                <td className="px-3 py-2.5 text-gray-800">{r.desa}</td>
                 <td className="px-3 py-2.5">
                   <p className="font-medium text-gray-900">{r.kelompok_tani ?? <span className="text-amber-600">Belum diisi</span>}</p>
                   <p className="text-xs text-gray-500">{r.ketua_poktan ? `Ketua: ${r.ketua_poktan}` : "Ketua belum diisi"}</p>
-                </td>
-                <td className="px-3 py-2.5">
-                  <p className="text-gray-800">{r.desa}</p>
-                  <p className="text-xs text-gray-500">{r.kecamatan}</p>
                 </td>
                 <td className="px-3 py-2.5 text-center tabular-nums font-medium text-gray-900">
                   {r.luas_ha != null ? formatHa(r.luas_ha) : <span className="text-amber-600">-</span>}
